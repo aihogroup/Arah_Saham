@@ -34,11 +34,11 @@ export default function GoogleButton({ next = "/akun", label = "Lanjutkan dengan
       <button type="button" className="btn w-full" onClick={go} disabled={busy}>
         <GoogleMark />{busy ? "Mengalihkan ke Google…" : label}
       </button>
-      {err && <p role="alert" className="mt-2 text-[13px] down">{err}</p>}
+      {err && <p role="alert" className="mt-2 text-meta down">{err}</p>}
     </div>
   );
 }
 
 export function OrDivider() {
-  return <div className="flex items-center gap-3 text-[13px] text-muted" role="separator"><span className="h-px flex-1 bg-line" />atau dengan email<span className="h-px flex-1 bg-line" /></div>;
+  return <div className="flex items-center gap-3 text-meta text-muted" role="separator"><span className="h-px flex-1 bg-line" />atau dengan email<span className="h-px flex-1 bg-line" /></div>;
 }

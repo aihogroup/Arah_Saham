@@ -34,7 +34,7 @@ async function Content({ params }: { params: Promise<{ jenis: string; nilai: str
   const initial = await getGroupStocksPublic(kind, value);
   return (
     <>
-      <p className="text-[13px] text-muted"><T k={`stocks.group.${kind}`} /></p>
+      <p className="text-meta text-muted"><T k={`stocks.group.${kind}`} /></p>
       <PageHead title={group.grp === "-" ? <T k="stocks.unclassified" /> : group.label} lead={group.n ? <>{int(group.n)} <T k="stocks.members" /> · <T k="market.value" /> {compact(group.total_value)} · <Delta value={group.avg_change} /></> : <T k="stocks.noIndexData" />} />
       <div className="card"><GroupStocks kind={kind} value={value} initial={initial} /></div>
     </>
@@ -43,8 +43,8 @@ async function Content({ params }: { params: Promise<{ jenis: string; nilai: str
 
 export default function KelompokPage({ params }: { params: Promise<{ jenis: string; nilai: string }> }) {
   return (
-    <div className="container-x py-10">
-      <Link href="/saham" className="mb-4 inline-flex items-center gap-1 text-[14px] text-muted hover:text-foreground"><ArrowLeft size={16} aria-hidden="true" /> <T k="stocks.back" /></Link>
+    <div className="container-x py-6 sm:py-8">
+      <Link href="/saham" className="mb-4 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground"><ArrowLeft size={16} aria-hidden="true" /> <T k="stocks.back" /></Link>
       <Suspense fallback={<Skeleton className="h-96" />}><Content params={params} /></Suspense>
     </div>
   );

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "@/components/Toaster";
 import { createClient } from "@/lib/supabase/client";
 import BirthDateSelect from "@/components/BirthDateSelect";
 import { INCOME_RANGES, OCCUPATIONS, birthError } from "@/lib/profile-options";
@@ -28,7 +29,7 @@ export default function CompleteProfileForm({ initial, next, needConsent }: { in
     });
     setBusy(false);
     if (error) return setErr(error.code === "23505" ? "Nama pengguna sudah dipakai." : error.message.includes("Usia") ? "Usia harus antara 17 dan 100 tahun." : "Gagal menyimpan. Coba lagi.");
-    router.replace(next); router.refresh();
+    toast("Profil dilengkapi. Selamat datang!"); router.replace(next); router.refresh();
   }
 
   async function skip() {
@@ -56,7 +57,7 @@ export default function CompleteProfileForm({ initial, next, needConsent }: { in
         </select>
       </L>
       {needConsent && (
-        <label className="flex items-start gap-2 text-[14px]">
+        <label className="flex items-start gap-2 text-sm">
           <input type="checkbox" className="mt-1" checked={f.consent} onChange={(e) => set("consent", e.target.checked)} />
           <span>Saya berusia minimal 17 tahun, menyetujui <Link href="/syarat" className="underline" target="_blank">Syarat</Link> dan <Link href="/privasi" className="underline" target="_blank">Kebijakan Privasi</Link>, dan memahami bahwa ini bukan nasihat investasi.</span>
         </label>
@@ -66,11 +67,11 @@ export default function CompleteProfileForm({ initial, next, needConsent }: { in
         <button type="button" className="btn" onClick={skip} disabled={busy}>Lewati dulu</button>
         <button className="btn btn-primary flex-1" disabled={busy}>{busy ? "Menyimpan…" : "Simpan dan lanjut"}</button>
       </div>
-      <p className="text-[13px] text-muted">Ingin tahu profil risiko Anda? Isi kuesioner singkat di halaman Akun setelah ini.</p>
+      <p className="text-meta text-muted">Ingin tahu profil risiko Anda? Isi kuesioner singkat di halaman Akun setelah ini.</p>
     </form>
   );
 }
 
 function L({ id, t, children }: { id: string; t: string; children: React.ReactNode }) {
-  return <div><label htmlFor={id} id={id.endsWith("-l") ? id : undefined} className="mb-1 block text-[14px] font-medium">{t}</label>{children}</div>;
+  return <div><label htmlFor={id} id={id.endsWith("-l") ? id : undefined} className="mb-1 block text-sm font-medium">{t}</label>{children}</div>;
 }

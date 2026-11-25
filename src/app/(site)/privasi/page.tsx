@@ -4,7 +4,7 @@ export const metadata = { title: "Kebijakan privasi" };
 
 export default function PrivasiPage() {
   return (
-    <div className="container-x py-10">
+    <div className="container-x py-6 sm:py-8">
       <PageHead title="Kebijakan privasi" lead="Draf awal berdasarkan UU Pelindungan Data Pribadi. Wajib ditinjau konsultan hukum." />
       <div className="prose-id max-w-[760px]">
         <h2>Data yang kami kumpulkan</h2>

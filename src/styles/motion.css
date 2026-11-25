@@ -1,0 +1,45 @@
+/* =====================================================================
+   Gerak: transisi halaman, pita pasar, layar pembuka, dan pengurangan animasi.
+   Semua animasi memakai token durasi/kurva yang sama dan hanya properti
+   transform/opacity (dikerjakan GPU, tidak memicu tata letak ulang).
+   ===================================================================== */
+
+/* Transisi masuk halaman. */
+#konten { animation: page-in var(--dur-slow) var(--ease-out); }
+@keyframes page-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Pita pasar berjalan. contain:paint mencegah pita melebarkan halaman (gulir horizontal). */
+.ticker { contain: paint; }
+.ticker-track { display: flex; gap: var(--space-6); width: max-content; animation: tick 60s linear infinite; will-change: transform; }
+.ticker:hover .ticker-track, .ticker:focus-within .ticker-track { animation-play-state: paused; }
+@keyframes tick { to { transform: translateX(-50%); } }
+:root[dir="rtl"] .ticker-track { animation-direction: reverse; }
+
+/* Layar pembuka aplikasi terpasang (PWA): logo di tengah, memudar setelah ~1 detik. Tidak tampil di peramban biasa. */
+.splash { display: none; }
+@media (display-mode: standalone) {
+  .splash {
+    display: flex; position: fixed; inset: 0; z-index: var(--z-splash); flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+    background: var(--background); color: var(--foreground); pointer-events: none;
+    animation: splash-out 0.45s ease 0.9s forwards;
+  }
+}
+@keyframes splash-out { to { opacity: 0; visibility: hidden; } }
+
+/* ---------- Pengurangan animasi ---------- */
+/* Preferensi sistem operasi. Pita pasar tetap bergerak lambat (berhenti saat disorot/fokus). */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  #konten, .toast, .btn-primary:disabled::before { animation: none; }
+  .btn, .chip, .card, .card-link, .progress > span { transition: none; }
+  .btn:active:not(:disabled), .chip:active, .card-link:hover { transform: none; }
+}
+/* Pilihan "Kurangi animasi" di Pengaturan aplikasi: mematikan semuanya, termasuk pita pasar. */
+:root[data-motion="reduce"] { scroll-behavior: auto; }
+:root[data-motion="reduce"] *, :root[data-motion="reduce"] *::before, :root[data-motion="reduce"] *::after {
+  animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important;
+}
+:root[data-motion="reduce"] .btn:active:not(:disabled), :root[data-motion="reduce"] .card-link:hover { transform: none; }
+:root[data-motion="reduce"] .ticker-track { animation: none !important; }
+:root[data-motion="reduce"] .ticker .container-x { overflow-x: auto; }
+:root[data-motion="reduce"] .ticker-track > [aria-hidden="true"] { display: none; }

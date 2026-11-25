@@ -1,7 +1,10 @@
 "use client";
 
+import { ProgressBar } from "@/components/ui";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "@/components/Toaster";
 import { createClient } from "@/lib/supabase/client";
 
 type Q = { q: string; a: [string, string, string, string] }; // jawaban berurutan skor 1–4 (paling hati-hati → paling berani)
@@ -44,8 +47,8 @@ export default function RiskQuiz({ score, assessedAt }: { score: number | null; 
     const total = next.reduce((a, b) => a + b, 0);
     const { error } = await createClient().rpc("save_risk_result", { p_score: total });
     setBusy(false);
-    if (error) { setErr("Gagal menyimpan hasil. Coba lagi."); setAns(next.slice(0, -1)); return; }
-    setOpen(false); setAns([]); router.refresh();
+    if (error) { setErr("Gagal menyimpan hasil. Coba lagi."); toast("Gagal menyimpan hasil", "error"); setAns(next.slice(0, -1)); return; }
+    toast("Hasil kuesioner tersimpan"); setOpen(false); setAns([]); router.refresh();
   }
 
   return (
@@ -54,20 +57,20 @@ export default function RiskQuiz({ score, assessedAt }: { score: number | null; 
       {result && !open && (
         <div role="status" className="space-y-2">
           <p>Hasil Anda: <strong className="text-brand">{RISK_INFO[result].title}</strong> <span className="text-muted">(skor {score} dari 32{assessedAt ? `, ${new Date(assessedAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}` : ""})</span></p>
-          <p className="text-[14px]">{RISK_INFO[result].text}</p>
-          <p className="text-[13px] text-muted">Batas rugi harian yang umum untuk profil ini: {RISK_INFO[result].loss} dari modal. Ini gambaran umum, bukan nasihat investasi.</p>
+          <p className="text-sm">{RISK_INFO[result].text}</p>
+          <p className="text-meta text-muted">Batas rugi harian yang umum untuk profil ini: {RISK_INFO[result].loss} dari modal. Ini gambaran umum, bukan nasihat investasi.</p>
         </div>
       )}
-      {!result && !open && <p className="text-[14px] text-muted">Jawab 8 pertanyaan singkat (sekitar 1 menit) untuk mengetahui apakah Anda tergolong konservatif, moderat, atau agresif.</p>}
+      {!result && !open && <p className="text-sm text-muted">Jawab 8 pertanyaan singkat (sekitar 1 menit) untuk mengetahui apakah Anda tergolong konservatif, moderat, atau agresif.</p>}
       {!open && <button type="button" className="btn btn-primary" onClick={() => { setOpen(true); setAns([]); }}>{result ? "Ulangi kuesioner" : "Mulai kuesioner"}</button>}
       {open && (
         <div className="space-y-3" role="group" aria-labelledby="rq-q">
-          <p className="text-[13px] text-muted" aria-live="polite">Pertanyaan {Math.min(step + 1, QUESTIONS.length)} dari {QUESTIONS.length}</p>
-          <div className="h-1.5 rounded bg-surface" aria-hidden="true"><div className="h-full rounded bg-brand" style={{ width: `${(step / QUESTIONS.length) * 100}%` }} /></div>
+          <p className="text-meta text-muted" aria-live="polite">Pertanyaan {Math.min(step + 1, QUESTIONS.length)} dari {QUESTIONS.length}</p>
+          <ProgressBar value={step} max={QUESTIONS.length} label="Kemajuan kuesioner" />
           <p id="rq-q" className="font-medium">{QUESTIONS[Math.min(step, QUESTIONS.length - 1)].q}</p>
           <div className="grid gap-2">
             {QUESTIONS[Math.min(step, QUESTIONS.length - 1)].a.map((t, i) => (
-              <button key={t} type="button" className="btn justify-start whitespace-normal text-left" disabled={busy} onClick={() => choose(i + 1)}>{t}</button>
+              <button key={t} type="button" className="btn min-h-12 justify-start whitespace-normal py-2 text-start" disabled={busy} onClick={() => choose(i + 1)}>{t}</button>
             ))}
           </div>
           <div className="flex gap-2">

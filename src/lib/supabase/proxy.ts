@@ -16,12 +16,23 @@ export async function updateSession(request: NextRequest) {
   });
   const { data } = await supabase.auth.getClaims();
   const path = request.nextUrl.pathname;
-  const needsLogin = ["/akun", "/analisis", "/riwayat", "/watchlist", "/admin"].some((p) => path === p || path.startsWith(p + "/"));
+  const needsLogin = ["/akun", "/analisis", "/beranda", "/riwayat", "/watchlist", "/admin"].some((p) => path === p || path.startsWith(p + "/"));
   if (needsLogin && !data?.claims) {
     const url = request.nextUrl.clone();
     url.pathname = "/masuk";
     url.searchParams.set("next", path);
     return NextResponse.redirect(url);
+  }
+  // Pengguna premium yang membuka beranda publik langsung diarahkan ke Beranda Premium (?publik=1 untuk melihat beranda umum).
+  if (path === "/" && data?.claims && !request.nextUrl.searchParams.has("publik")) {
+    const { data: prem } = await supabase.rpc("is_premium");
+    if (prem === true) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/beranda";
+      const r = NextResponse.redirect(url);
+      response.cookies.getAll().forEach((c) => r.cookies.set(c));
+      return r;
+    }
   }
   return response;
 }

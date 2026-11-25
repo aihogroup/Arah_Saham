@@ -4,7 +4,7 @@ export const metadata = { title: "Syarat dan ketentuan" };
 
 export default function SyaratPage() {
   return (
-    <div className="container-x py-10">
+    <div className="container-x py-6 sm:py-8">
       <PageHead title="Syarat dan ketentuan" lead="Draf awal. Wajib ditinjau konsultan hukum sebelum peluncuran." />
       <div className="prose-id max-w-[760px]">
         <h2>Layanan</h2>

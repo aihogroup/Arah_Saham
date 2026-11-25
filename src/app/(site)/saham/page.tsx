@@ -42,7 +42,7 @@ async function Groups({ kind }: { kind: GroupKind }) {
 
 export default function SahamPage({ searchParams }: { searchParams: Promise<{ q?: string; lihat?: string }> }) {
   return (
-    <div className="container-x py-10">
+    <div className="container-x py-6 sm:py-8">
       <PageHead title={<T k="stocks.title" />} lead={<T k="stocks.lead" />} />
       <Suspense fallback={<Skeleton className="h-96" />}><Body sp={searchParams} /></Suspense>
     </div>

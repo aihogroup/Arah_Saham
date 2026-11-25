@@ -4,28 +4,30 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { invalidate } from "@/lib/client-cache";
+import { toast } from "@/components/Toaster";
+import { ChoiceCard } from "@/components/ui";
 
 type Mode = "stabil" | "dinamis";
 const OPTIONS: { id: Mode; title: string; body: string }[] = [
-  { id: "stabil", title: "Data seadanya (stabil)", body: "Ramalan dihitung sekali per hari bursa dari data penutupan, lalu dikunci. Hasilnya tidak berubah-ubah sepanjang hari sehingga mudah dijadikan acuan dan dievaluasi." },
-  { id: "dinamis", title: "Data dinamis", body: "Ramalan dihitung ulang setiap Anda membuka halaman, memakai data masukan terbaru dan model terlatih terakhir. Lebih cepat mengikuti perubahan data, tetapi arah dan keyakinan bisa berubah dari ramalan awal." },
+  { id: "stabil", title: "Data seadanya (stabil)", body: "Ramalan dihitung sekali per hari bursa dari data penutupan, lalu dikunci sebelum hasilnya diketahui (walk-forward). Akurasinya jujur ke depan, sekitar 56–60%." },
+  { id: "dinamis", title: "Data dinamis", body: "Ramalan dihitung ulang dengan seluruh data terbaru, tanpa walk-forward, memakai metode yang sama dengan Admin. Hasil hari yang dinilai ikut dihitung sehingga kecocokan historisnya tinggi (sekitar 80%), tetapi itu mengukur kecocokan pola, bukan janji akurasi ke depan." },
 ];
+const TITLE: Record<Mode, string> = { stabil: "stabil", dinamis: "dinamis" };
 
+/** Pilihan mode tersimpan otomatis (tanpa tombol simpan), langsung tampil (UI optimistis), dan bisa diurungkan. */
 export default function ForecastModeForm({ initial }: { initial: Mode }) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>(initial);
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
-  async function pick(next: Mode) {
-    if (next === mode || busy) return;
-    const prev = mode;
-    setMode(next); setBusy(true); setMsg(null);
+  async function save(next: Mode, prev: Mode, undoable = true) {
+    setMode(next); setBusy(true);
     const { error } = await createClient().rpc("set_forecast_mode", { p_mode: next });
     setBusy(false);
-    if (error) { setMode(prev); return setMsg({ ok: false, text: "Gagal menyimpan pengaturan." }); }
-    invalidate("outlook"); setMsg({ ok: true, text: "Pengaturan tersimpan." });
+    if (error) { setMode(prev); toast("Gagal menyimpan pengaturan. Periksa koneksi lalu coba lagi.", "error"); return; }
+    invalidate("outlook");
     router.refresh();
+    toast(`Mode ${TITLE[next]} aktif.`, "success", undoable ? { label: "Urungkan", onClick: () => void save(prev, next, false) } : undefined);
   }
 
   return (
@@ -33,15 +35,11 @@ export default function ForecastModeForm({ initial }: { initial: Mode }) {
       <h2 id="h-mode" className="text-lg">Mode data analisis pasar</h2>
       <div role="radiogroup" aria-labelledby="h-mode" className="grid gap-3 sm:grid-cols-2">
         {OPTIONS.map((o) => (
-          <button key={o.id} type="button" role="radio" aria-checked={mode === o.id} disabled={busy} onClick={() => pick(o.id)}
-            className={`rounded-lg border p-3 text-left transition-colors ${mode === o.id ? "border-brand bg-brand-soft" : "border-line hover:border-brand"}`}>
-            <span className="block font-semibold">{mode === o.id ? "● " : "○ "}{o.title}</span>
-            <span className="mt-1 block text-[13px] text-muted">{o.body}</span>
-          </button>
+          <ChoiceCard key={o.id} checked={mode === o.id} disabled={busy} title={o.title} body={o.body}
+            onSelect={() => { if (o.id !== mode && !busy) void save(o.id, mode); }} />
         ))}
       </div>
-      <p className="text-[13px] text-muted">Kedua mode memakai model dan data yang sama. Akurasi mode dinamis belum bisa diukur terpisah karena riwayat perubahan data tidak tersimpan; akurasi terukur hanya untuk ramalan stabil (lihat Riwayat).</p>
-      {msg && <p role={msg.ok ? "status" : "alert"} className={msg.ok ? "up" : "down"}>{msg.text}</p>}
+      <p className="text-meta text-muted">Halaman Riwayat menampilkan angka sesuai mode yang Anda pilih. Angka mode stabil adalah ukuran akurasi ke depan; angka mode dinamis dihitung ulang dengan data terbaru (in-sample).</p>
     </section>
   );
 }

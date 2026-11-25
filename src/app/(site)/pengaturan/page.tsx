@@ -6,7 +6,7 @@ export const metadata = { title: "Pengaturan tampilan", description: "Atur bahas
 
 export default function PengaturanPage() {
   return (
-    <div className="container-x py-10">
+    <div className="container-x py-6 sm:py-8">
       <div className="mx-auto max-w-[760px]">
         <PageHead title={<T k="set.title" />} lead={<T k="set.lead" />} />
         <PrefsForm />

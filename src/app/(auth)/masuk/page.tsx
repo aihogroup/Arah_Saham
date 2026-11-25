@@ -9,6 +9,6 @@ export default function MasukPage({ searchParams }: { searchParams: Promise<{ ne
 
 async function Inner({ sp }: { sp: Promise<{ next?: string }> }) {
   const { next } = await sp;
-  const safe = next && next.startsWith("/") && !next.startsWith("//") ? next : "/akun";
+  const safe = next && next.startsWith("/") && !next.startsWith("//") ? next : "/beranda";
   return <LoginForm next={safe} />;
 }

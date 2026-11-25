@@ -13,8 +13,8 @@ export default function QuarantineList({ items }: { items: Q[] }) {
     <ul className="space-y-2">
       {items.map((q) => (
         <li key={q.id} className="card flex items-start justify-between gap-3">
-          <div className="min-w-0"><p className="text-[14px]"><strong>{q.source}</strong> · {q.trade_date ?? "–"} · <span className="down">{q.reason}</span></p>
-            <pre className="mt-1 overflow-x-auto text-[12px] text-muted">{JSON.stringify(q.row_data)}</pre></div>
+          <div className="min-w-0"><p className="text-sm"><strong>{q.source}</strong> · {q.trade_date ?? "–"} · <span className="down">{q.reason}</span></p>
+            <pre className="mt-1 overflow-x-auto text-caption text-muted">{JSON.stringify(q.row_data)}</pre></div>
           <button className="btn shrink-0" onClick={async () => { await resolveQuarantine(q.id); router.refresh(); }}>Tandai selesai</button>
         </li>
       ))}

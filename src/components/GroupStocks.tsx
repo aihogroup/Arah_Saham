@@ -54,7 +54,7 @@ export default function GroupStocks({ kind, value, initial }: { kind: "sektor" |
   return (
     <div>
       {signedIn && <div className="mb-3"><label className="sr-only" htmlFor="cari-grup">Cari saham</label><input id="cari-grup" className="input max-w-xs" placeholder="Cari kode atau nama" value={q} onChange={(e) => setQ(e.target.value)} /></div>}
-      <div className="overflow-x-auto">
+      <div className="table-scroll">
         <table className="data">
           <thead><tr>
             {th("stock_code", <T k="col.code" />)}<th className="hidden sm:table-cell"><T k="col.name" /></th>

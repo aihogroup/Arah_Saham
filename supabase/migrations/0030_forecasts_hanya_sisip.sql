@@ -1,0 +1,2 @@
+-- forecasts adalah tabel audit (tidak boleh diubah): semua penulisan hanya menyisipkan baris baru.
+-- finalize_ridge_mv hanya mengevaluasi; build_suara_forecasts memakai on conflict do nothing (versi terpasang ada di database).

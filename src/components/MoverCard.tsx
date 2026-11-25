@@ -13,10 +13,10 @@ export function MoverCard({ title, rows, href, showValue }: { title: string; row
             <Link href={`/saham/${r.stock_code}`} className="flex min-h-[48px] items-center justify-between gap-3 py-2">
               <span className="min-w-0">
                 <span className="block font-medium">{r.stock_code}</span>
-                <span className="block truncate text-[13px] text-muted">{r.name}</span>
+                <span className="block truncate text-meta text-muted">{r.name}</span>
               </span>
               <Sparkline data={r.spark} width={56} height={22} />
-              <span className="text-right">
+              <span className="text-end">
                 <span className="block font-medium">{showValue ? compact(r.value) : price(r.close)}</span>
                 <Delta value={r.change_pct} />
               </span>

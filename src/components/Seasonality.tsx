@@ -63,13 +63,13 @@ export default function Seasonality({ source, symbol }: { source: Source; symbol
   }, [months, years]);
 
   const col = (xs: number[]) => ({ avg: mean(xs), up: xs.filter((v) => v > 0).length, down: xs.filter((v) => v < 0).length, total: xs.length });
-  const th = "px-2 py-2 text-center text-[12px] font-medium text-muted";
-  const td = "px-2 py-1.5 text-center text-[13px] tabular-nums";
+  const th = "px-2 py-2 text-center text-caption font-medium text-muted";
+  const td = "px-2 py-1.5 text-center text-meta tabular-nums";
 
   return (
     <section className="mt-6 border-t border-line pt-5" aria-labelledby={`seas-${symbol}`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 id={`seas-${symbol}`} className="text-[18px] leading-7"><T k="seas.title" /></h3>
+        <h3 id={`seas-${symbol}`} className="text-lg leading-7"><T k="seas.title" /></h3>
         <div className="flex flex-wrap gap-2">
           <div className="flex gap-2" role="group" aria-label="Jenis seasonality">
             <button type="button" className="chip" aria-pressed={tab === "monthly"} onClick={() => setTab("monthly")}><T k="seas.monthly" /></button>
@@ -82,31 +82,31 @@ export default function Seasonality({ source, symbol }: { source: Source; symbol
           )}
         </div>
       </div>
-      <p className="mt-1 text-[12px] text-muted"><T k="seas.lead" /></p>
+      <p className="mt-1 text-caption text-muted"><T k="seas.lead" /></p>
 
-      {err && <p role="alert" className="mt-3 text-[14px] down"><T k="seas.error" /></p>}
-      {!err && months === null && <p role="status" className="mt-3 text-[14px] text-muted"><T k="seas.loading" /></p>}
-      {!err && months !== null && !grid && <p className="mt-3 text-[14px] text-muted"><T k="seas.none" /></p>}
+      {err && <p role="alert" className="mt-3 text-sm down"><T k="seas.error" /></p>}
+      {!err && months === null && <p role="status" className="mt-3 text-sm text-muted"><T k="seas.loading" /></p>}
+      {!err && months !== null && !grid && <p className="mt-3 text-sm text-muted"><T k="seas.none" /></p>}
 
       {grid && tab === "monthly" && (
-        <div className="mt-3 overflow-x-auto">
+        <div className="mt-3 table-scroll">
           <table className="w-full min-w-[640px] border-collapse">
-            <thead><tr><th className={`${th} text-left`}></th>{monthNames.map((m) => <th key={m} className={th}>{m}</th>)}<th className={th}><T k="seas.year" /></th></tr></thead>
+            <thead><tr><th className={`${th} text-start`}></th>{monthNames.map((m) => <th key={m} className={th}>{m}</th>)}<th className={th}><T k="seas.year" /></th></tr></thead>
             <tbody>
-              <tr className="border-t border-line"><th scope="row" className={`${td} text-left font-semibold`}><T k="seas.avg" /></th>
+              <tr className="border-t border-line"><th scope="row" className={`${td} text-start font-semibold`}><T k="seas.avg" /></th>
                 {grid.cols.map((c, i) => { const a = col(c).avg; return <td key={i} className={`${td} font-semibold`} style={tint(a, grid.scale)}>{fmt(a)}</td>; })}
                 {(() => { const a = mean(grid.yv); return <td className={`${td} font-semibold`} style={tint(a, grid.yscale)}>{fmt(a)}</td>; })()}</tr>
               {grid.ys.map((y) => (
-                <tr key={y} className="border-t border-line"><th scope="row" className={`${td} text-left font-medium`}>{y}</th>
+                <tr key={y} className="border-t border-line"><th scope="row" className={`${td} text-start font-medium`}>{y}</th>
                   {Array.from({ length: 12 }, (_, i) => { const v = grid.cell(y, i + 1); return <td key={i} className={td} style={tint(v, grid.scale)}>{fmt(v)}</td>; })}
                   {(() => { const v = grid.yearly(y); return <td className={`${td} font-medium`} style={tint(v, grid.yscale)}>{fmt(v)}</td>; })()}</tr>
               ))}
               {(["up", "down", "total"] as const).map((k) => (
-                <tr key={k} className={k === "up" ? "border-t-2 border-line" : "border-t border-line"}><th scope="row" className={`${td} text-left font-medium`}><T k={k === "up" ? "seas.up" : k === "down" ? "seas.down" : "seas.total"} /></th>
+                <tr key={k} className={k === "up" ? "border-t-2 border-line" : "border-t border-line"}><th scope="row" className={`${td} text-start font-medium`}><T k={k === "up" ? "seas.up" : k === "down" ? "seas.down" : "seas.total"} /></th>
                   {grid.cols.map((c, i) => <td key={i} className={td}>{col(c)[k]}</td>)}
                   <td className={td}>{k === "up" ? grid.yv.filter((v) => v > 0).length : k === "down" ? grid.yv.filter((v) => v < 0).length : grid.yv.length}</td></tr>
               ))}
-              <tr className="border-t border-line"><th scope="row" className={`${td} text-left font-semibold`}><T k="seas.prob" /></th>
+              <tr className="border-t border-line"><th scope="row" className={`${td} text-start font-semibold`}><T k="seas.prob" /></th>
                 {grid.cols.map((c, i) => { const s = col(c); const p = s.total ? (s.up / s.total) * 100 : null; return <td key={i} className={`${td} font-semibold`} style={tint(p === null ? null : p - 50, 50)}>{p === null ? "" : `${Math.round(p)}%`}</td>; })}
                 {(() => { const n = grid.yv.length; const p = n ? (grid.yv.filter((v) => v > 0).length / n) * 100 : null; return <td className={`${td} font-semibold`} style={tint(p === null ? null : p - 50, 50)}>{p === null ? "" : `${Math.round(p)}%`}</td>; })()}</tr>
             </tbody>
@@ -115,7 +115,7 @@ export default function Seasonality({ source, symbol }: { source: Source; symbol
       )}
 
       {grid && tab === "weekday" && dows && (
-        <div className="mt-3 overflow-x-auto">
+        <div className="mt-3 table-scroll">
           <table className="data min-w-[520px]">
             <thead><tr><th><T k="seas.day" /></th><th className="r"><T k="seas.avgChange" /></th><th className="r"><T k="seas.up" /></th><th className="r"><T k="seas.down" /></th><th className="r"><T k="seas.total" /></th><th className="r"><T k="seas.prob" /></th></tr></thead>
             <tbody>

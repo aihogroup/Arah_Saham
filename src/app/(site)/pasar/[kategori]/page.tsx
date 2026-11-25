@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ kategori:
 async function Content({ params }: { params: Promise<{ kategori: string }> }) {
   const c = catBySlug((await params).kategori);
   if (!c) notFound();
-  const rows = (await getMarketCatalog()).filter((x) => x.category === c.db);
+  const rows = (await getMarketCatalog()).filter((x) => (c.dbs as readonly string[]).includes(x.category));
   return (
     <>
       <PageHead title={<T k={c.k} />} lead={<T k={c.lead} />} />
@@ -33,8 +33,8 @@ async function Content({ params }: { params: Promise<{ kategori: string }> }) {
 
 export default function KategoriPage({ params }: { params: Promise<{ kategori: string }> }) {
   return (
-    <div className="container-x py-10">
-      <Link href="/pasar" className="mb-4 inline-flex items-center gap-1 text-[14px] text-muted hover:text-foreground"><ArrowLeft size={16} aria-hidden="true" /> <T k="market.back" /></Link>
+    <div className="container-x py-6 sm:py-8">
+      <Link href="/pasar" className="mb-4 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground"><ArrowLeft size={16} aria-hidden="true" /> <T k="market.back" /></Link>
       <Suspense fallback={<Skeleton className="h-96" />}><Content params={params} /></Suspense>
     </div>
   );

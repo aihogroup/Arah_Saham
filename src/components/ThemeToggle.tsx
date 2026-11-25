@@ -1,18 +1,17 @@
 "use client";
 
-import { Monitor, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { useSyncExternalStore } from "react";
 import { getTheme, saveTheme, subscribePrefs, type Theme } from "@/lib/prefs";
 
-const ORDER: Theme[] = ["system", "light", "dark"];
-const LABEL: Record<Theme, string> = { system: "Tema: ikuti sistem", light: "Tema: terang", dark: "Tema: gelap" };
-
+/** Pengalih mode warna: terang atau gelap (tanpa mode sistem). */
 export default function ThemeToggle() {
-  const mode = useSyncExternalStore(subscribePrefs, getTheme, () => "system" as Theme);
-  const next = () => saveTheme(ORDER[(ORDER.indexOf(mode) + 1) % ORDER.length]);
-  const Icon = mode === "light" ? Sun : mode === "dark" ? Moon : Monitor;
+  const mode = useSyncExternalStore(subscribePrefs, getTheme, () => "light" as Theme);
+  const to: Theme = mode === "dark" ? "light" : "dark";
+  const Icon = mode === "dark" ? Moon : Sun;
+  const label = mode === "dark" ? "Mode gelap aktif. Ganti ke terang" : "Mode terang aktif. Ganti ke gelap";
   return (
-    <button type="button" className="btn btn-ghost px-3" onClick={next} aria-label={`${LABEL[mode]}. Klik untuk mengganti.`} title={LABEL[mode]}>
+    <button type="button" className="btn btn-ghost px-3" onClick={() => saveTheme(to)} aria-label={label} title={label}>
       <Icon size={20} aria-hidden="true" />
     </button>
   );

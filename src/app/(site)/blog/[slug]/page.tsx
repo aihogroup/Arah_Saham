@@ -24,7 +24,7 @@ async function Article({ params }: { params: Promise<{ slug: string }> }) {
   if (!p) notFound();
   return (
     <article className="mx-auto max-w-[720px]">
-      <p className="text-[13px] text-muted">{dateId(p.publish_at)}</p>
+      <p className="text-meta text-muted">{dateId(p.publish_at)}</p>
       <h1 className="mt-1">{p.title}</h1>
       {p.cover_url && (
         // eslint-disable-next-line @next/next/no-img-element
@@ -37,5 +37,5 @@ async function Article({ params }: { params: Promise<{ slug: string }> }) {
 }
 
 export default function PostPage({ params }: { params: Promise<{ slug: string }> }) {
-  return <div className="container-x py-10"><Suspense fallback={<Skeleton className="h-96" />}><Article params={params} /></Suspense></div>;
+  return <div className="container-x py-6 sm:py-8"><Suspense fallback={<Skeleton className="h-96" />}><Article params={params} /></Suspense></div>;
 }

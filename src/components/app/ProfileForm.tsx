@@ -1,8 +1,10 @@
 "use client";
 
+import { confirmDialog } from "@/components/ConfirmDialog";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { toast } from "@/components/Toaster";
 import BirthDateSelect from "@/components/BirthDateSelect";
 import { INCOME_RANGES, OCCUPATIONS, birthError } from "@/lib/profile-options";
 
@@ -17,7 +19,6 @@ export default function ProfileForm({ initial }: { initial: P }) {
   });
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
-  const [confirmDel, setConfirmDel] = useState(false);
   const set = (k: keyof typeof f, v: string) => setF((p) => ({ ...p, [k]: v }));
 
   async function save(e: React.FormEvent) {
@@ -35,10 +36,12 @@ export default function ProfileForm({ initial }: { initial: P }) {
     }).eq("id", u.user!.id);
     setBusy(false);
     setMsg(error ? { ok: false, text: error.code === "23505" ? "Nama pengguna sudah dipakai." : "Gagal menyimpan." } : { ok: true, text: "Tersimpan." });
-    if (!error) router.refresh();
+    if (!error) { toast("Profil berhasil disimpan"); router.refresh(); } else toast(error.code === "23505" ? "Nama pengguna sudah dipakai" : "Gagal menyimpan profil", "error");
   }
 
   async function del() {
+    const ok = await confirmDialog({ title: "Hapus akun secara permanen?", message: "Akun, profil, watchlist, preset, dan jurnal akan dihapus. Tindakan ini tidak bisa dibatalkan.", confirmLabel: "Hapus akun permanen", tone: "danger" });
+    if (!ok) return;
     setBusy(true);
     const res = await fetch("/api/account/delete", { method: "POST" });
     if (res.ok) { await createClient().auth.signOut(); router.replace("/"); router.refresh(); }
@@ -59,23 +62,20 @@ export default function ProfileForm({ initial }: { initial: P }) {
           <L id="ts" t="Gaya trading"><select id="ts" className="input" value={f.trading_style} onChange={(e) => set("trading_style", e.target.value)}><option value="">–</option><option value="scalping">Scalping</option><option value="intraday">Intraday</option><option value="swing_singkat">Swing singkat</option></select></L>
         </div>
         {msg && <p role={msg.ok ? "status" : "alert"} className={msg.ok ? "up" : "down"}>{msg.text}</p>}
-        <button className="btn btn-primary" disabled={busy}>{busy ? "Menyimpan…" : "Simpan"}</button>
+        <div className="action-bar"><button className="btn btn-primary w-full sm:w-auto" disabled={busy} aria-busy={busy}>{busy ? "Menyimpan…" : "Simpan profil"}</button></div>
       </form>
 
       <section className="card space-y-3" aria-labelledby="h-keluar">
         <h2 id="h-keluar" className="text-lg">Sesi dan data</h2>
-        <form action="/auth/signout" method="post"><button className="btn">Keluar</button></form>
-        {!confirmDel ? <button className="btn down" onClick={() => setConfirmDel(true)}>Hapus akun saya</button> : (
-          <div role="alertdialog" aria-label="Konfirmasi hapus akun" className="space-y-2">
-            <p>Akun, profil, watchlist, dan preset akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.</p>
-            <div className="flex gap-2"><button className="btn" onClick={() => setConfirmDel(false)}>Batal</button><button className="btn btn-danger" onClick={del} disabled={busy}>Ya, hapus permanen</button></div>
-          </div>
-        )}
+        <div className="flex flex-wrap gap-2">
+          <form action="/auth/signout" method="post"><button className="btn">Keluar</button></form>
+          <button type="button" className="btn btn-danger" onClick={del} disabled={busy}>Hapus akun saya</button>
+        </div>
       </section>
     </>
   );
 }
 
 function L({ id, t, children }: { id: string; t: string; children: React.ReactNode }) {
-  return <div><label htmlFor={id} id={id.endsWith("-l") ? id : undefined} className="mb-1 block text-[14px] font-medium">{t}</label>{children}</div>;
+  return <div><label htmlFor={id} id={id.endsWith("-l") ? id : undefined} className="mb-1 block text-sm font-medium">{t}</label>{children}</div>;
 }

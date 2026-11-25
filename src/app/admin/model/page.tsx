@@ -22,9 +22,9 @@ export default async function AdminModel() {
       <PageHead title="Model & data" />
       {d?.demo && <Banner level="warning">Akurasi di bawah dihitung dari data demo yang disisipi sinyal buatan. Angka ini tidak mencerminkan kinerja nyata.</Banner>}
       {s && <div className="grid gap-3 sm:grid-cols-3">
-        <div className="card"><p className="text-[13px] text-muted">Akurasi model (365 hari)</p><p className="text-2xl font-semibold">{pc(s.hit_rate)}</p><p className="text-[13px] text-muted">{s.n_called} ramalan dievaluasi</p></div>
-        <div className="card"><p className="text-[13px] text-muted">Selalu naik</p><p className="text-2xl font-semibold">{pc(s.always_up_rate)}</p></div>
-        <div className="card"><p className="text-[13px] text-muted">Acak</p><p className="text-2xl font-semibold">{pc(s.random_rate)}</p></div>
+        <div className="card"><p className="text-meta text-muted">Akurasi model (365 hari)</p><p className="text-2xl font-semibold">{pc(s.hit_rate)}</p><p className="text-meta text-muted">{s.n_called} ramalan dievaluasi</p></div>
+        <div className="card"><p className="text-meta text-muted">Selalu naik</p><p className="text-2xl font-semibold">{pc(s.always_up_rate)}</p></div>
+        <div className="card"><p className="text-meta text-muted">Acak</p><p className="text-2xl font-semibold">{pc(s.random_rate)}</p></div>
       </div>}
       {dq && <DataQuality q={dq as Record<string, number | string | null>} />}
       <table className="data"><thead><tr><th>Versi</th><th>Deskripsi</th><th>Aktif</th><th>Dibuat</th></tr></thead>
@@ -53,11 +53,11 @@ const CHECKS: { k: string; label: string; kind: "masalah" | "info" }[] = [
 function DataQuality({ q }: { q: Record<string, number | string | null> }) {
   return (
     <section aria-labelledby="h-dq" className="card">
-      <h2 id="h-dq" className="text-lg">Kualitas data <span className="text-[13px] font-normal text-muted">· data terakhir {q.tanggal_terakhir ? dateId(String(q.tanggal_terakhir)) : "–"}</span></h2>
+      <h2 id="h-dq" className="text-lg">Kualitas data <span className="text-meta font-normal text-muted">· data terakhir {q.tanggal_terakhir ? dateId(String(q.tanggal_terakhir)) : "–"}</span></h2>
       <dl className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2">
         {CHECKS.map((c) => {
           const v = q[c.k]; const bad = c.kind === "masalah" && Number(v ?? 0) > 0;
-          return <div key={c.k} className="flex justify-between border-b border-line py-1 text-[14px]"><dt>{c.label}</dt><dd className={`tabular-nums ${bad ? "down font-semibold" : ""}`}>{v ?? "–"}{bad ? " ✗" : c.kind === "masalah" ? " ✓" : ""}</dd></div>;
+          return <div key={c.k} className="flex justify-between border-b border-line py-1 text-sm"><dt>{c.label}</dt><dd className={`tabular-nums ${bad ? "down font-semibold" : ""}`}>{v ?? "–"}{bad ? " ✗" : c.kind === "masalah" ? " ✓" : ""}</dd></div>;
         })}
       </dl>
     </section>

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { Database, ListChecks, Lock, Search, Sparkles } from "lucide-react";
+import { ChevronDown, Database, ListChecks, Lock, Search, Sparkles } from "lucide-react";
 import { MoverCard } from "@/components/MoverCard";
-import { Delta, Disclaimer, Section, Skeleton, Sparkline, Stamp } from "@/components/ui";
+import { Badge, Delta, Disclaimer, Section, Skeleton, Sparkline, Stamp } from "@/components/ui";
 import { getDataStatus, getOverview, getPlans, getPosts, getRanking } from "@/lib/data";
 import { dateId, idr, int, num } from "@/lib/format";
 
@@ -20,24 +20,25 @@ async function Hero() {
         <form action="/saham" className="mt-6 flex max-w-xl gap-2" role="search">
           <label htmlFor="q" className="sr-only">Cari saham</label>
           <div className="relative flex-1">
-            <Search size={18} className="pointer-events-none absolute left-3 top-4 text-muted" aria-hidden="true" />
-            <input id="q" name="q" className="input !min-h-14 pl-10" placeholder="Cari kode atau nama saham, mis. BBCA" autoComplete="off" />
+            <Search size={18} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted" aria-hidden="true" />
+            <input id="q" name="q" type="search" enterKeyHint="search" className="input !min-h-14 ps-10" placeholder="Cari kode atau nama saham, mis. BBCA" autoComplete="off" autoCapitalize="characters" spellCheck={false} />
           </div>
-          <button className="btn btn-primary !min-h-14" type="submit">Cari</button>
+          <button className="btn !min-h-14" type="submit">Cari</button>
         </form>
         <div className="mt-3 flex flex-wrap gap-2">
-          <span className="self-center text-[13px] text-muted">Populer:</span>
+          <span className="self-center text-meta text-muted">Populer:</span>
           {["BBCA", "BBRI", "TLKM", "GOTO"].map((c) => <Link key={c} href={`/saham/${c}`} className="chip">{c}</Link>)}
         </div>
-        <div className="mt-6"><Link href="/daftar" className="btn btn-primary">Daftar gratis</Link></div>
+        {/* Satu tindakan utama di hero (Efek Von Restorff); tombol Cari sengaja netral. */}
+        <div className="mt-6 flex flex-wrap items-center gap-3"><Link href="/daftar" className="btn btn-primary">Daftar gratis</Link><span className="text-meta text-muted">Tanpa kartu kredit. Data mentah langsung terbuka.</span></div>
       </div>
       <div className="lg:col-span-5">
         <div className="card">
-          <p className="text-[13px] text-muted">IHSG · penutupan</p>
+          <p className="text-meta text-muted">IHSG · penutupan</p>
           {o?.ihsg ? (
             <>
               <div className="mt-1 flex items-baseline justify-between gap-3">
-                <span className="text-[32px] font-semibold leading-10">{num(o.ihsg.close)}</span>
+                <span className="text-display font-semibold">{num(o.ihsg.close)}</span>
                 <Delta value={o.ihsg.change_pct} />
               </div>
               <div className="mt-3"><Sparkline data={o.ihsg_spark} width={360} height={80} /></div>
@@ -47,7 +48,7 @@ async function Hero() {
                     <div style={{ width: `${(b.advancers / total) * 100}%`, background: "var(--up)" }} />
                     <div style={{ width: `${(b.decliners / total) * 100}%`, background: "var(--down)" }} />
                   </div>
-                  <p className="mt-2 text-[13px] text-muted">{int(b.advancers)} naik · {int(b.decliners)} turun · {int(b.unchanged)} tetap</p>
+                  <p className="mt-2 text-meta text-muted">{int(b.advancers)} naik · {int(b.decliners)} turun · {int(b.unchanged)} tetap</p>
                 </div>
               )}
               <Stamp date={o.ihsg.date} demo={st?.demo} />
@@ -77,9 +78,9 @@ async function Others() {
   return (
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       {list.map((x) => (
-        <div key={x.symbol} className="card !p-4" style={{ minHeight: 120 }}>
-          <p className="text-[13px] text-muted">{x.name}</p>
-          <p className="mt-1 text-[22px] font-semibold leading-7">{num(x.close, x.close > 1000 ? 0 : 2)}</p>
+        <div key={x.symbol} className="card min-h-[120px] !p-4">
+          <p className="text-meta text-muted">{x.name}</p>
+          <p className="mt-1 text-2xl font-semibold leading-7">{num(x.close, x.close > 1000 ? 0 : 2)}</p>
           <div className="mt-2 flex items-center justify-between"><Delta value={x.change_pct} /><Sparkline data={x.spark} width={56} height={22} /></div>
         </div>
       ))}
@@ -94,17 +95,17 @@ async function Pricing() {
   return (
     <div className="mx-auto grid max-w-[1000px] gap-6 md:grid-cols-2">
       <div className="card">
-        <h3>Gratis</h3><p className="mt-2 text-[32px] font-semibold leading-10">Rp0</p>
-        <ul className="mt-4 space-y-2 text-[15px]">
+        <h3>Gratis</h3><p className="mt-2 text-display font-semibold">Rp0</p>
+        <ul className="mt-4 space-y-2 text-body">
           {["Ringkasan pasar harian", "Data mentah lengkap setelah login", "Peringkat saham dan broker", "Watchlist sederhana", "Unduh CSV (kuota kecil)"].map((t) => <li key={t}>✓ {t}</li>)}
         </ul>
         <Link href="/daftar" className="btn mt-6 w-full">Daftar gratis</Link>
       </div>
-      <div className="card border-brand">
-        <div className="flex items-center justify-between"><h3>Premium</h3><span className="chip" data-active="true">Paling lengkap</span></div>
-        <p className="mt-2 text-[32px] font-semibold leading-10">{monthly ? idr(monthly.price_idr) : "Rp79.000"}<span className="text-[15px] font-normal text-muted"> / bulan</span></p>
-        {yearly && <p className="text-[13px] text-muted">atau {idr(yearly.price_idr)} per tahun (setara dua bulan gratis)</p>}
-        <ul className="mt-4 space-y-2 text-[15px]">
+      <div className="card card-accent">
+        <div className="flex items-center justify-between"><h3>Premium</h3><Badge tone="brand">Paling lengkap</Badge></div>
+        <p className="mt-2 text-display font-semibold">{monthly ? idr(monthly.price_idr) : "Rp79.000"}<span className="text-body font-normal text-muted"> / bulan</span></p>
+        {yearly && <p className="text-meta text-muted">atau {idr(yearly.price_idr)} per tahun (setara dua bulan gratis)</p>}
+        <ul className="mt-4 space-y-2 text-body">
           {["Kondisi pasar untuk besok", "Kandidat saham sesuai indeks & indikator pilihan", "Preset tersimpan", "Riwayat ketepatan sinyal rinci", "Kuota unduh CSV besar"].map((t) => <li key={t}>✓ {t}</li>)}
         </ul>
         <Link href="/harga" className="btn btn-primary mt-6 w-full">Coba premium 30 hari</Link>
@@ -120,9 +121,9 @@ async function Posts() {
       {posts.map((p) => (
         <Link key={p.slug} href={`/blog/${p.slug}`} className="card block hover:bg-surface">
           <div className="mb-4 aspect-video rounded-lg bg-brand-soft" aria-hidden="true" />
-          <h3 className="text-[18px] leading-6">{p.title}</h3>
-          <p className="mt-1 text-[13px] text-muted">{dateId(p.publish_at)}</p>
-          <p className="mt-2 line-clamp-2 text-[15px] text-muted">{p.excerpt}</p>
+          <h3 className="text-lg leading-6">{p.title}</h3>
+          <p className="mt-1 text-meta text-muted">{dateId(p.publish_at)}</p>
+          <p className="mt-2 line-clamp-2 text-body text-muted">{p.excerpt}</p>
         </Link>
       ))}
     </div>
@@ -136,6 +137,12 @@ const FAQ = [
   ["Apakah saya bisa berhenti kapan saja?", "Ya. Setelah langganan berakhir akun kembali gratis dan preset Anda tetap tersimpan."],
   ["Bagaimana data pribadi saya diperlakukan?", "Kami hanya meminta data seperlunya, penghasilan disimpan sebagai rentang, dan Anda dapat menghapus akun kapan saja."],
 ];
+
+// Data terstruktur FAQ untuk mesin pencari (teks statis milik situs, aman disisipkan).
+const FAQ_LD = JSON.stringify({
+  "@context": "https://schema.org", "@type": "FAQPage",
+  mainEntity: FAQ.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
+}).replace(/</g, "\u003c");
 
 export default function Home() {
   return (
@@ -160,10 +167,10 @@ export default function Home() {
       </Section>
       <Section title="Cuplikan premium" lead="Contoh tampilan Analisis Saya. Data di bawah hanyalah contoh.">
         <div className="card relative overflow-hidden">
-          <span className="chip absolute right-4 top-4" data-active="true">Contoh</span>
+          <Badge tone="brand" className="absolute end-4 top-4">Contoh</Badge>
           <div aria-hidden="true" className="select-none opacity-60 blur-[3px]">
-            <p className="text-[13px] text-muted">Kondisi pasar untuk besok</p>
-            <p className="text-[28px] font-semibold">Cenderung naik · keyakinan sedang</p>
+            <p className="text-meta text-muted">Kondisi pasar untuk besok</p>
+            <p className="text-display font-semibold">Cenderung naik · keyakinan sedang</p>
             <table className="data mt-4"><tbody>
               {["AAAA", "BBBB", "CCCC", "DDDD"].map((c, i) => <tr key={c}><td>{c}</td><td>Pantau</td><td className="r">{(0.4 - i * 0.07).toFixed(2)}</td></tr>)}
             </tbody></table>
@@ -178,11 +185,20 @@ export default function Home() {
         <Suspense fallback={<Skeleton className="h-64" />}><Posts /></Suspense>
         <div className="mt-12 max-w-3xl">
           {FAQ.map(([q, a]) => (
-            <details key={q} className="border-b border-line py-4"><summary className="cursor-pointer font-medium">{q}</summary><p className="mt-2 text-muted">{a}</p></details>
+            <details key={q} className="group border-b border-line"><summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 py-3 font-medium">{q}<ChevronDown size={18} aria-hidden="true" className="shrink-0 text-muted transition-transform group-open:rotate-180" /></summary><p className="pb-4 text-muted">{a}</p></details>
           ))}
         </div>
       </Section>
-      <div className="container-x pb-12 text-center"><Link href="/daftar" className="btn btn-primary">Daftar gratis</Link><Disclaimer className="mt-4" /></div>
+      {/* Penutup halaman (Aturan Puncak-Akhir): ajakan jelas di akhir gulir. */}
+      <div className="container-x pb-12">
+        <div className="card card-accent flex flex-col items-center gap-3 py-10 text-center">
+          <h2>Siap memantau pasar besok pagi?</h2>
+          <p className="measure text-muted">Daftar gratis dalam satu menit. Ringkasan pasar, peringkat saham, dan data broker langsung terbuka.</p>
+          <Link href="/daftar" className="btn btn-primary">Daftar gratis</Link>
+        </div>
+        <Disclaimer className="mt-6 text-center" />
+      </div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: FAQ_LD }} />
     </>
   );
 }

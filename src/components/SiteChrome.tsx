@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { cacheLife } from "next/cache";
+import { DesktopNav, MobileMenu } from "@/components/NavMenu";
+import UserMenu from "@/components/UserMenu";
 import ThemeToggle from "@/components/ThemeToggle";
-import { BarChart3, Landmark, Menu, Settings, Sparkles, UserRound } from "lucide-react";
+import HeaderSearch from "@/components/HeaderSearch";
 import { T } from "@/components/T";
+import type { Key } from "@/lib/i18n";
+export { default as MobileNav } from "@/components/MobileNav";
 import { getAccess } from "@/lib/auth";
 import { getAnnouncements, getOverview } from "@/lib/data";
 import { Banner, Delta } from "@/components/ui";
@@ -27,55 +31,60 @@ async function Year() {
 /** Wordmark teks "ArahSaham.com" (tanpa ikon). */
 export function Logo({ size = "lg" }: { size?: "lg" | "md" }) {
   return (
-    <Link href="/" className={`font-extrabold leading-none tracking-tight text-foreground ${size === "lg" ? "text-[26px] sm:text-[30px]" : "text-[24px]"}`} aria-label="ArahSaham.com, beranda">
+    <Link href="/" className={`inline-flex min-h-11 items-center font-extrabold leading-none tracking-tight text-foreground ${size === "lg" ? "text-[20px] min-[400px]:text-[24px] sm:text-[30px]" : "text-[24px]"}`} aria-label="ArahSaham.com, beranda">
       Arah<span className="text-brand">Saham</span><span className="font-semibold text-muted">.com</span>
     </Link>
   );
 }
 
-async function AuthNav() {
-  const a = await getAccess();
-  if (!a.userId) return <GuestButtons />;
+/** Tamu: "Daftar" satu-satunya tombol berwarna merek di header (Efek Von Restorff); "Masuk" sekunder. */
+function GuestButtons() {
   return (
     <div className="flex items-center gap-2">
-      {a.isAdmin && <Link className="btn btn-ghost hidden sm:inline-flex" href="/admin"><T k="nav.admin" /></Link>}
-      <Link className="btn btn-ghost hidden sm:inline-flex" href="/analisis"><T k="nav.myAnalysis" /></Link>
-      <Link className="btn" href="/akun"><UserRound size={16} aria-hidden="true" /> {a.username ?? <T k="nav.account" />}</Link>
+      <Link className="btn btn-ghost hidden sm:inline-flex" href="/masuk"><T k="auth.login" /></Link>
+      <Link className="btn btn-primary max-sm:px-3 max-[379px]:hidden" href="/daftar"><T k="auth.signup" /></Link>
     </div>
   );
 }
 
-function GuestButtons() {
+const FOOTER: { title: Key; links: { href: string; k?: Key; label?: string }[] }[] = [
+  { title: "footer.product", links: [
+    { href: "/pasar", k: "nav.market" }, { href: "/pasar/pergerakan", label: "Analisis pergerakan" }, { href: "/saham", k: "nav.stocks" },
+    { href: "/free-float", label: "Free float" }, { href: "/peringkat", k: "footer.ranking" }, { href: "/indeks", k: "footer.indexChanges" },
+  ] },
+  { title: "footer.company", links: [{ href: "/blog", k: "nav.blog" }, { href: "/harga", k: "nav.pricing" }, { href: "/pengaturan", k: "nav.settings" }] },
+  { title: "footer.legal", links: [{ href: "/syarat", k: "footer.terms" }, { href: "/privasi", k: "footer.privacy" }, { href: "/disclaimer", k: "footer.disclaimer" }] },
+];
+
+/** Bagian header setelah logo: menu utama, pencarian, dan akun. Satu kali baca akses untuk semuanya. */
+function HeaderBar({ premium, signedIn, children }: { premium: boolean; signedIn: boolean; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-2">
-      <Link className="btn btn-ghost" href="/masuk"><T k="auth.login" /></Link>
-      <Link className="btn btn-primary" href="/daftar"><T k="auth.signup" /></Link>
-    </div>
+    <>
+      <DesktopNav premium={premium} />
+      <div className="flex min-w-0 flex-1 items-center justify-end gap-1 sm:gap-2">
+        <HeaderSearch />
+        {children}
+        <MobileMenu premium={premium} signedIn={signedIn} />
+      </div>
+    </>
+  );
+}
+
+async function AuthBar() {
+  const a = await getAccess();
+  return (
+    <HeaderBar premium={a.isPremium} signedIn={!!a.userId}>
+      {a.userId ? <UserMenu name={a.username} isAdmin={a.isAdmin} isPremium={a.isPremium} /> : <GuestButtons />}
+    </HeaderBar>
   );
 }
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-background/95 backdrop-blur">
-      <div className="container-x flex h-[72px] items-center justify-between gap-4">
-        <div className="flex items-center gap-8">
-          <Logo />
-          <nav aria-label="Menu utama" className="hidden items-center gap-6 xl:flex">
-            {NAV.map((n) => <Link key={n.href} href={n.href} className="text-[15px] text-muted hover:text-foreground"><T k={n.k} /></Link>)}
-          </nav>
-        </div>
-        <div className="flex items-center gap-1 sm:gap-2">
-          <Link href="/pengaturan" className="btn btn-ghost px-3" aria-label="Pengaturan tampilan" title="Pengaturan tampilan"><Settings size={20} aria-hidden="true" /></Link>
-          <ThemeToggle />
-          <Suspense fallback={<GuestButtons />}><AuthNav /></Suspense>
-          <details className="relative xl:hidden">
-            <summary className="btn btn-ghost list-none px-3" aria-label="Buka menu"><Menu size={20} aria-hidden="true" /></summary>
-            <div className="absolute right-0 top-12 w-56 rounded-xl border border-line bg-background p-2 shadow-lg">
-              {NAV.map((n) => <Link key={n.href} href={n.href} className="block rounded-lg px-3 py-3 hover:bg-surface"><T k={n.k} /></Link>)}
-              <Link href="/pengaturan" className="block rounded-lg px-3 py-3 hover:bg-surface"><T k="nav.settings" /></Link>
-            </div>
-          </details>
-        </div>
+    <header className="sticky top-0 z-40 border-b border-line bg-background/95 pt-[var(--safe-top)] backdrop-blur">
+      <div className="container-x relative flex h-[var(--header-h)] items-center gap-2 sm:gap-4">
+        <div className="me-2 shrink-0"><Logo /></div>
+        <Suspense fallback={<HeaderBar premium={false} signedIn={false}><GuestButtons /></HeaderBar>}><AuthBar /></Suspense>
       </div>
     </header>
   );
@@ -90,7 +99,7 @@ export async function Ticker() {
     ...o.others.map((x) => ({ k: x.name, v: mprice(x.close), c: x.change_pct, href: symbolHref(x.symbol) })),
   ];
   const row = (suffix: string) => items.map((i) => (
-    <Link key={i.k + suffix} href={i.href} tabIndex={suffix === "b" ? -1 : undefined} aria-hidden={suffix === "b" ? true : undefined} className="flex items-center gap-2 whitespace-nowrap text-[13px] hover:underline">
+    <Link key={i.k + suffix} href={i.href} tabIndex={suffix === "b" ? -1 : undefined} aria-hidden={suffix === "b" ? true : undefined} className="flex items-center gap-2 whitespace-nowrap text-meta hover:underline">
       <span className="text-muted">{i.k}</span><span className="font-medium">{i.v}</span><Delta value={i.c} />
     </Link>
   ));
@@ -111,36 +120,20 @@ export async function AnnouncementBar() {
 
 export function Footer() {
   return (
-    <footer className="mt-auto border-t border-line bg-surface pb-24 md:pb-0">
-      <div className="container-x grid gap-8 py-12 sm:grid-cols-2 lg:grid-cols-4">
-        <div><Logo size="md" /><p className="mt-3 text-[14px] text-muted"><T k="footer.tagline" /></p></div>
-        <div><h3 className="text-[14px] font-semibold"><T k="footer.product" /></h3><ul className="mt-3 space-y-2 text-[14px] text-muted">
-          <li><Link href="/pasar"><T k="nav.market" /></Link></li><li><Link href="/saham"><T k="nav.stocks" /></Link></li><li><Link href="/peringkat"><T k="footer.ranking" /></Link></li><li><Link href="/indeks"><T k="footer.indexChanges" /></Link></li></ul></div>
-        <div><h3 className="text-[14px] font-semibold"><T k="footer.company" /></h3><ul className="mt-3 space-y-2 text-[14px] text-muted">
-          <li><Link href="/blog"><T k="nav.blog" /></Link></li><li><Link href="/harga"><T k="nav.pricing" /></Link></li><li><Link href="/pengaturan"><T k="nav.settings" /></Link></li></ul></div>
-        <div><h3 className="text-[14px] font-semibold"><T k="footer.legal" /></h3><ul className="mt-3 space-y-2 text-[14px] text-muted">
-          <li><Link href="/syarat"><T k="footer.terms" /></Link></li><li><Link href="/privasi"><T k="footer.privacy" /></Link></li><li><Link href="/disclaimer"><T k="footer.disclaimer" /></Link></li></ul></div>
+    <footer className="mt-auto border-t border-line bg-surface pb-[calc(var(--bottom-nav-h)+var(--safe-bottom))] md:pb-0">
+      <div className="container-x grid gap-6 py-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div><Logo size="md" /><p className="mt-3 text-sm text-muted"><T k="footer.tagline" /></p></div>
+        {FOOTER.map((g) => (
+          <div key={g.title}>
+            <h2 className="text-sm font-semibold"><T k={g.title} /></h2>
+            <ul className="mt-2 text-sm text-muted">
+              {/* Tinggi baris 40px: tautan mudah diketuk di ponsel (Hukum Fitts). */}
+              {g.links.map((l) => <li key={l.href}><Link href={l.href} className="inline-flex min-h-10 items-center hover:text-foreground hover:underline">{l.k ? <T k={l.k} /> : l.label}</Link></li>)}
+            </ul>
+          </div>
+        ))}
       </div>
-      <div className="border-t border-line"><p className="container-x py-4 text-[13px] text-muted">{DISCLAIMER} © <Suspense fallback="2026"><Year /></Suspense> ArahSaham.com.</p></div>
+      <div className="border-t border-line"><div className="container-x flex flex-wrap items-center justify-between gap-3 py-4"><p className="max-w-3xl text-meta text-muted">{DISCLAIMER} © <Suspense fallback="2026"><Year /></Suspense> ArahSaham.com.</p><ThemeToggle /></div></div>
     </footer>
-  );
-}
-
-/** Navigasi bawah ponsel: Pasar, Saham, Analisis, Akun. */
-export function MobileNav() {
-  const items = [
-    { href: "/pasar", k: "nav.market", Icon: BarChart3 },
-    { href: "/saham", k: "nav.stocks", Icon: Landmark },
-    { href: "/analisis", k: "nav.analysis", Icon: Sparkles },
-    { href: "/akun", k: "nav.account", Icon: UserRound },
-  ] as const;
-  return (
-    <nav aria-label="Navigasi ponsel" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-line bg-background md:hidden">
-      {items.map(({ href, k, Icon }) => (
-        <Link key={href} href={href} className="flex min-h-[56px] flex-col items-center justify-center gap-1 text-[12px] text-muted">
-          <Icon size={20} aria-hidden="true" /><T k={k} />
-        </Link>
-      ))}
-    </nav>
   );
 }

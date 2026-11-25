@@ -1,11 +1,17 @@
 "use client";
 
-export default function ErrorPage({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
+import { useEffect } from "react";
+import { ErrorState } from "@/components/ui";
+
+/** Batas galat global: pesan awam + coba lagi di tempat (tanpa memuat ulang seluruh aplikasi). */
+export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  useEffect(() => { console.error(error); }, [error]);
   return (
-    <main className="container-x py-24 text-center" role="alert">
-      <h1>Terjadi kendala</h1>
-      <p className="mt-2 text-muted">Data belum bisa dimuat. Coba lagi sebentar.</p>
-      <button className="btn btn-primary mt-6" onClick={reset}>Muat ulang</button>
+    <main id="konten" className="container-x py-16">
+      <ErrorState
+        message={<>Halaman ini belum bisa ditampilkan. Biasanya karena koneksi terputus atau server sedang sibuk. Coba lagi sebentar.{error.digest && <span className="mt-2 block text-caption">Kode: {error.digest}</span>}</>}
+        onRetry={reset}
+      />
     </main>
   );
 }

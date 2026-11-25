@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Chart, { type Point } from "@/components/Chart";
+import { type Point } from "@/components/Chart";
+import MarketChart from "@/components/MarketChart";
 import Seasonality from "@/components/Seasonality";
 import { T, useT } from "@/components/T";
 import { Delta } from "@/components/ui";
@@ -15,7 +16,7 @@ type Row = { trade_date: string; close: number; change_pct: number | null };
 const PERIODS: { days: number; k: Key }[] = [
   { days: 30, k: "per.1m" }, { days: 90, k: "per.3m" }, { days: 180, k: "per.6m" }, { days: 365, k: "per.1y" }, { days: 1825, k: "per.5y" }, { days: 0, k: "per.max" },
 ];
-const PAGE = 25;
+const PAGE = 10;
 
 const toRows = (rows: { trade_date: string; close: number | string; change_pct: number | string | null }[]): Row[] =>
   rows.map((r) => ({ trade_date: r.trade_date, close: Number(r.close), change_pct: r.change_pct === null ? null : Number(r.change_pct) }));
@@ -51,29 +52,27 @@ export default function SymbolHistory({ symbol, name, initial, initialDays }: { 
   return (
     <div className="space-y-6">
       <div className="card">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap gap-2" role="group" aria-label={t("market.period")}>
-            {PERIODS.map((p) => <button key={p.days} type="button" className="chip" aria-pressed={days === p.days} onClick={() => { setDays(p.days); setShown(PAGE); }}><T k={p.k} /></button>)}
-          </div>
-          {stats && <p className="text-[14px] text-muted"><T k="market.perf" />: <Delta value={stats.change} /></p>}
-        </div>
-        <div className="mt-4" aria-busy={loading}>
-          {points.length ? <Chart data={points} height={340} label={`${name}`} /> : <p className="py-16 text-center text-muted">{loading ? "Memuat…" : "Data belum tersedia."}</p>}
-        </div>
-        {err && <p role="alert" className="mt-2 text-[14px] down">{err}</p>}
-        {stats && (
-          <dl className="mt-4 grid gap-3 text-[14px] sm:grid-cols-3">
-            <div><dt className="text-muted"><T k="market.high" /></dt><dd className="font-medium">{mprice(stats.hi.close)} <span className="text-[12px] text-muted">({dateId(stats.hi.trade_date, { day: "numeric", month: "short", year: "numeric" })})</span></dd></div>
-            <div><dt className="text-muted"><T k="market.low" /></dt><dd className="font-medium">{mprice(stats.lo.close)} <span className="text-[12px] text-muted">({dateId(stats.lo.trade_date, { day: "numeric", month: "short", year: "numeric" })})</span></dd></div>
-            <div><dt className="text-muted"><T k="market.range" /></dt><dd className="font-medium">{rows.length.toLocaleString("id-ID")} <T k="market.days" /></dd></div>
-          </dl>
-        )}
-        <Seasonality source="market" symbol={symbol} />
+        <MarketChart symbol={symbol} label={name} height={360} defaultRange="1y" fallback={points} />
+        <details className="mt-3"><summary className="cursor-pointer text-sm text-brand">Pola musiman</summary><Seasonality source="market" symbol={symbol} /></details>
       </div>
 
       <section className="card" aria-labelledby="h-riwayat">
-        <h2 id="h-riwayat" className="text-[20px] leading-7"><T k="market.history" /></h2>
-        <div className="mt-3 overflow-x-auto">
+        <h2 id="h-riwayat" className="text-xl leading-7"><T k="market.history" /></h2>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-2" role="group" aria-label={t("market.period")}>
+            {PERIODS.map((p) => <button key={p.days} type="button" className="chip" aria-pressed={days === p.days} onClick={() => { setDays(p.days); setShown(PAGE); }}><T k={p.k} /></button>)}
+          </div>
+          {stats && <p className="text-sm text-muted"><T k="market.perf" />: <Delta value={stats.change} /></p>}
+        </div>
+        {err && <p role="alert" className="mt-2 text-sm down">{err}</p>}
+        {stats && (
+          <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3" aria-busy={loading}>
+            <div><dt className="text-muted"><T k="market.high" /></dt><dd className="font-medium">{mprice(stats.hi.close)} <span className="text-caption text-muted">({dateId(stats.hi.trade_date, { day: "numeric", month: "short", year: "numeric" })})</span></dd></div>
+            <div><dt className="text-muted"><T k="market.low" /></dt><dd className="font-medium">{mprice(stats.lo.close)} <span className="text-caption text-muted">({dateId(stats.lo.trade_date, { day: "numeric", month: "short", year: "numeric" })})</span></dd></div>
+            <div><dt className="text-muted"><T k="market.range" /></dt><dd className="font-medium">{rows.length.toLocaleString("id-ID")} <T k="market.days" /></dd></div>
+          </dl>
+        )}
+        <div className="mt-3 table-scroll">
           <table className="data">
             <thead><tr><th><T k="col.date" /></th><th className="r"><T k="col.close" /></th><th className="r"><T k="col.change" /></th></tr></thead>
             <tbody>

@@ -20,7 +20,7 @@ async function List() {
             </Link>
           )}
           <div className="p-4 sm:p-6">
-            <p className="text-[13px] text-muted">{dateId(p.publish_at)}</p>
+            <p className="text-meta text-muted">{dateId(p.publish_at)}</p>
             <h2 className="mt-1 text-lg"><Link href={`/blog/${p.slug}`} className="hover:underline">{p.title}</Link></h2>
             {p.excerpt && <p className="mt-2 text-muted">{p.excerpt}</p>}
           </div>
@@ -32,7 +32,7 @@ async function List() {
 
 export default function BlogPage() {
   return (
-    <div className="container-x py-10">
+    <div className="container-x py-6 sm:py-8">
       <PageHead title="Blog edukasi" lead="Penjelasan sederhana tentang data, risiko, dan cara kerja analisis." />
       <Suspense fallback={<Skeleton className="h-64" />}><List /></Suspense>
     </div>

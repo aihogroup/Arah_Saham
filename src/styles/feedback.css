@@ -1,0 +1,66 @@
+/* =====================================================================
+   Umpan balik dan keadaan: kerangka muat, kemajuan, notifikasi, langkah.
+   Ambang Doherty: setiap aksi harus terasa direspons < 400 ms, jadi kerangka
+   dan bilah kemajuan muncul seketika sementara data dimuat.
+   ===================================================================== */
+
+/* ---------- Kerangka muat (skeleton + kilau) ---------- */
+.skeleton {
+  border-radius: var(--radius-sm); min-height: 16px;
+  background: linear-gradient(90deg, var(--surface) 0%, var(--line) 50%, var(--surface) 100%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton { background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+}
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* ---------- Bilah kemajuan navigasi (atas layar) ---------- */
+.nav-progress {
+  position: fixed; inset: 0 0 auto 0; height: 3px; z-index: var(--z-progress); background: var(--brand);
+  transform-origin: left; transform: scaleX(0); opacity: 0; pointer-events: none;
+}
+:root[dir="rtl"] .nav-progress { transform-origin: right; }
+.nav-progress[data-state="loading"] { opacity: 1; transform: scaleX(0.8); transition: transform 8s cubic-bezier(0.1, 0.6, 0.2, 1); }
+.nav-progress[data-state="done"] { opacity: 0; transform: scaleX(1); transition: transform var(--dur-base), opacity 0.4s var(--dur-base); }
+
+/* ---------- Bilah kemajuan tugas (Efek Zeigarnik: tugas yang belum selesai terlihat) ---------- */
+.progress { height: 8px; border-radius: var(--radius-pill); background: var(--surface); overflow: hidden; border: var(--border-width) solid var(--line); }
+.progress > span { display: block; height: 100%; border-radius: inherit; background: var(--brand); transition: width var(--dur-slow) var(--ease-out); }
+
+/* ---------- Langkah wizard ---------- */
+.steps { display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px; line-height: 16px; }
+.steps > li { display: inline-flex; align-items: center; gap: var(--space-1); padding: 6px 10px; border-radius: var(--radius-pill); background: var(--surface); color: var(--muted); }
+.steps > li[data-state="done"] { background: var(--brand-soft); color: var(--foreground); }
+.steps > li[aria-current="step"] { background: var(--brand); color: var(--brand-fg); font-weight: 600; }
+
+/* ---------- Notifikasi (toast/snackbar) ---------- */
+.toast-region {
+  position: fixed; z-index: var(--z-toast); display: flex; flex-direction: column; gap: var(--space-2); align-items: center; pointer-events: none;
+  inset-inline: var(--space-4); inset-block-end: calc(var(--bottom-nav-h) + var(--safe-bottom) + var(--space-3));
+}
+@media (min-width: 768px) { .toast-region { inset-inline: auto var(--space-5); inset-block-end: var(--space-5); align-items: flex-end; } }
+.toast {
+  pointer-events: auto; display: flex; align-items: center; gap: 10px; max-width: min(92vw, 440px);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4); min-height: 48px;
+  border-radius: var(--radius-md); border: var(--border-width) solid var(--line); border-inline-start-width: 4px;
+  background: var(--surface-raised); color: var(--foreground); box-shadow: var(--shadow-3); font-size: 14px; line-height: 20px;
+  animation: toast-in var(--dur-base) var(--ease-out);
+}
+.toast[data-kind="success"] { border-inline-start-color: var(--success); }
+.toast[data-kind="error"] { border-inline-start-color: var(--danger); }
+.toast[data-kind="info"] { border-inline-start-color: var(--brand); }
+.toast[data-leaving="1"] { animation: toast-out var(--dur-base) forwards; }
+.toast-action { min-height: 36px; padding-inline: var(--space-3); border-radius: var(--radius-sm); font-weight: 600; color: var(--brand); background: transparent; border: 0; cursor: pointer; }
+.toast-close { display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--radius-sm); color: var(--muted); background: transparent; border: 0; cursor: pointer; }
+@media (hover: hover) { .toast-action:hover, .toast-close:hover { background: var(--surface); } }
+@keyframes toast-in { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes toast-out { to { opacity: 0; transform: translateY(6px); } }
+
+/* ---------- Status luring ---------- */
+.offline-bar {
+  position: fixed; z-index: var(--z-toast); inset-inline: 0; inset-block-start: 0;
+  padding: var(--space-2) var(--space-4); padding-block-start: calc(var(--space-2) + var(--safe-top));
+  background: var(--warn-bg); color: var(--warn-fg); text-align: center; font-size: 14px; line-height: 20px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

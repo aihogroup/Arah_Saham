@@ -20,7 +20,7 @@ export default function ForgotForm() {
   return (
     <form onSubmit={submit} className="space-y-4">
       <h1 className="text-xl">Lupa kata sandi</h1>
-      <div><label htmlFor="e" className="mb-1 block text-[14px] font-medium">Email</label><input id="e" type="email" required className="input" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+      <div><label htmlFor="e" className="mb-1 block text-sm font-medium">Email</label><input id="e" type="email" required className="input" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
       <button className="btn btn-primary w-full" disabled={busy}>{busy ? "Mengirim…" : "Kirim tautan"}</button>
     </form>
   );

@@ -18,7 +18,7 @@ export default async function AnalisisPasarPage({ searchParams }: { searchParams
 
   const head = (
     <>
-      <Link href="/analisis" className="mb-3 inline-flex items-center gap-1 text-[14px] text-brand"><ArrowLeft size={16} aria-hidden="true" /> Analisis saya</Link>
+      <Link href="/analisis" className="mb-3 inline-flex items-center gap-1 text-sm text-brand"><ArrowLeft size={16} aria-hidden="true" /> Analisis saya</Link>
       <PageHead title="Analisis pasar harian" lead="Kondisi pasar yang dihitung pada hari-hari sebelumnya, beserta hasil sebenarnya di hari berikutnya." />
     </>
   );
@@ -26,12 +26,15 @@ export default async function AnalisisPasarPage({ searchParams }: { searchParams
 
   const sb = await createClient();
   const from = (page - 1) * PER_PAGE;
+  // Hanya model acuan (aktif): satu baris ramalan per hari.
+  const { data: mv } = await sb.from("model_versions").select("id").eq("active", true).order("created_at", { ascending: false }).limit(1);
+  const modelId = mv?.[0]?.id ?? "";
   const { data: fc, count } = await sb.from("forecasts")
-    .select("made_on,target_date,direction,confidence,pred_return,reasons", { count: "exact" })
+    .select("made_on,target_date,direction,confidence,pred_return,reasons", { count: "exact" }).eq("model_id", modelId)
     .order("made_on", { ascending: false }).range(from, from + PER_PAGE - 1);
   const dates = (fc ?? []).map((f) => f.made_on);
   const { data: ev } = dates.length
-    ? await sb.from("evaluations").select("made_on,actual_return,hit").in("made_on", dates)
+    ? await sb.from("evaluations").select("made_on,actual_return,hit").eq("model_id", modelId).in("made_on", dates)
     : { data: [] as { made_on: string; actual_return: number; hit: boolean | null }[] };
   const actual = new Map((ev ?? []).map((e) => [e.made_on, e]));
   const pages = Math.max(1, Math.ceil((count ?? 0) / PER_PAGE));
@@ -50,11 +53,11 @@ export default async function AnalisisPasarPage({ searchParams }: { searchParams
               <li key={f.made_on} className="card">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <h2 className="text-lg">{dateId(f.target_date)}</h2>
-                  <p className="text-[13px] text-muted">dihitung {dateId(f.made_on)}</p>
+                  <p className="text-meta text-muted">dihitung {dateId(f.made_on)}</p>
                 </div>
-                <p className="mt-1 font-medium"><span className={dirCls}>{dirTxt}</span> <span className="text-[14px] font-normal text-muted">· keyakinan {Math.round(f.confidence * 100)}%</span></p>
-                {reasons.length > 0 && <ul className="mt-2 list-disc pl-5 text-[14px]">{reasons.slice(0, 3).map((r) => <li key={r.feature}>{reasonText(r.feature, r.contribution)}</li>)}</ul>}
-                <p className="mt-3 border-t border-line pt-2 text-[14px]">
+                <p className="mt-1 font-medium"><span className={dirCls}>{dirTxt}</span> <span className="text-sm font-normal text-muted">· keyakinan {Math.round(f.confidence * 100)}%</span></p>
+                {reasons.length > 0 && <ul className="mt-2 list-disc ps-5 text-sm">{reasons.slice(0, 3).map((r) => <li key={r.feature}>{reasonText(r.feature, r.contribution)}</li>)}</ul>}
+                <p className="mt-3 border-t border-line pt-2 text-sm">
                   {e ? (<>
                     Hasil sebenarnya: <span className={e.actual_return >= 0 ? "up" : "down"}>{e.actual_return >= 0 ? "▲ +" : "▼ −"}{Math.abs(e.actual_return * 100).toFixed(2).replace(".", ",")}%</span>
                     {" · "}{e.hit ? "✓ tepat" : "✗ meleset"}
@@ -68,7 +71,7 @@ export default async function AnalisisPasarPage({ searchParams }: { searchParams
       {pages > 1 && (
         <nav aria-label="Halaman" className="flex items-center justify-between">
           {page > 1 ? <Link className="btn" href={`/analisis/pasar?hal=${page - 1}`}>← Lebih baru</Link> : <span />}
-          <span className="text-[14px] text-muted">Halaman {page} dari {pages}</span>
+          <span className="text-sm text-muted">Halaman {page} dari {pages}</span>
           {page < pages ? <Link className="btn" href={`/analisis/pasar?hal=${page + 1}`}>Lebih lama →</Link> : <span />}
         </nav>
       )}

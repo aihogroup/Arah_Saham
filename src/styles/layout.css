@@ -1,0 +1,31 @@
+/* =====================================================================
+   Tata letak: wadah, bagian, area aman. Lebar dan jarak cair (clamp),
+   breakpoint hanya dipakai bila struktur konten memang berubah.
+   ===================================================================== */
+
+/* width:100% wajib: body adalah flex kolom, dan item bermargin auto tidak meregang sehingga lebarnya mengikuti isi. */
+.container-x {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: max(var(--space-gutter), var(--safe-left)) max(var(--space-gutter), var(--safe-right));
+}
+@media (max-width: 359px) { .container-x { padding-inline: 12px; } }
+@media (min-width: 1920px) { :root { --container-max: 1360px; } }
+
+.section { padding-block: var(--space-section); }
+
+/* Ruang untuk navigasi bawah ponsel agar konten terakhir tidak tertutup. */
+.pb-bottom-nav { padding-block-end: calc(var(--bottom-nav-h) + var(--safe-bottom) + var(--space-4)); }
+@media (min-width: 768px) { .pb-bottom-nav { padding-block-end: var(--space-6); } }
+
+/* Teks panjang dibatasi lebar bacanya. */
+.measure { max-width: var(--measure); }
+
+/* Wadah kueri: komponen menyesuaikan diri dengan lebar induknya, bukan lebar layar. */
+.cq { container-type: inline-size; }
+
+/* Layar lipat dengan dua panel: beri jarak di engsel. */
+@media (horizontal-viewport-segments: 2) {
+  .container-x { padding-inline: max(var(--space-gutter), env(viewport-segment-left 1 0, 0px)); }
+}

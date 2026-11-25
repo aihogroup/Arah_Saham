@@ -1,5 +1,7 @@
 "use client";
 
+import { confirmDialog } from "@/components/ConfirmDialog";
+
 import { useEffect, useState } from "react";
 import { revalidateContent } from "@/app/admin/actions";
 import { createClient } from "@/lib/supabase/client";
@@ -39,7 +41,7 @@ export default function IndexAdmin() {
   }
   async function publish() {
     const c = valid(); if (!c) return;
-    if (!confirm(`Terbitkan versi baru ${code} efektif ${date} (${c.length} saham)?`)) return;
+    if (!(await confirmDialog({ title: `Terbitkan versi baru ${code}?`, message: `Efektif ${date}, berisi ${c.length} saham. Versi lama tetap tersimpan di riwayat.`, confirmLabel: "Terbitkan" }))) return;
     const { error } = await createClient().rpc("publish_index_version", { p_index: code, p_date: date, p_codes: c, p_note: note || null });
     if (error) return setMsg({ ok: false, t: error.message.includes("tidak ditemukan") || error.message.includes("missing") ? "Ada kode saham yang tidak ada di daftar emiten." : "Gagal menerbitkan." });
     setMsg({ ok: true, t: "Versi baru diterbitkan." }); setDiff(null); setText("");
@@ -50,10 +52,10 @@ export default function IndexAdmin() {
   return (
     <div className="space-y-4">
       <div className="card grid gap-3 sm:grid-cols-3">
-        <div><label htmlFor="ix" className="mb-1 block text-[13px]">Indeks</label><select id="ix" className="input" value={code} onChange={(e) => setCode(e.target.value)}>{indexes.map((i) => <option key={i.code} value={i.code}>{i.name}</option>)}</select></div>
-        <div><label htmlFor="dt" className="mb-1 block text-[13px]">Tanggal efektif</label><input id="dt" type="date" className="input" value={date} onChange={(e) => setDate(e.target.value)} /></div>
-        <div><label htmlFor="nt" className="mb-1 block text-[13px]">Catatan</label><input id="nt" className="input" value={note} onChange={(e) => setNote(e.target.value)} /></div>
-        <div className="sm:col-span-3"><label htmlFor="cd" className="mb-1 block text-[13px]">Daftar kode saham ({codes().length})</label><textarea id="cd" rows={5} className="input" value={text} onChange={(e) => { setText(e.target.value); setDiff(null); }} /></div>
+        <div><label htmlFor="ix" className="mb-1 block text-meta">Indeks</label><select id="ix" className="input" value={code} onChange={(e) => setCode(e.target.value)}>{indexes.map((i) => <option key={i.code} value={i.code}>{i.name}</option>)}</select></div>
+        <div><label htmlFor="dt" className="mb-1 block text-meta">Tanggal efektif</label><input id="dt" type="date" className="input" value={date} onChange={(e) => setDate(e.target.value)} /></div>
+        <div><label htmlFor="nt" className="mb-1 block text-meta">Catatan</label><input id="nt" className="input" value={note} onChange={(e) => setNote(e.target.value)} /></div>
+        <div className="sm:col-span-3"><label htmlFor="cd" className="mb-1 block text-meta">Daftar kode saham ({codes().length})</label><textarea id="cd" rows={5} className="input" value={text} onChange={(e) => { setText(e.target.value); setDiff(null); }} /></div>
         <div className="flex gap-2 sm:col-span-3"><button className="btn" onClick={preview}>Pratinjau selisih</button><button className="btn btn-primary" onClick={publish} disabled={!diff}>Terbitkan</button></div>
       </div>
       {msg && <p role={msg.ok ? "status" : "alert"} className={msg.ok ? "up" : "down"}>{msg.t}</p>}

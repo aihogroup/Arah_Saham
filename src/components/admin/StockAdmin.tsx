@@ -91,12 +91,12 @@ export default function StockAdmin() {
       <datalist id="papan-list">{boards.map((x) => <option key={x} value={x} />)}</datalist>
       <form onSubmit={save} className="card grid gap-3 sm:grid-cols-6">
         {(["code", "name", "sector", "board", "listed_shares"] as const).map((k) => (
-          <div key={k} className={k === "name" ? "sm:col-span-2" : ""}><label className="mb-1 block text-[13px]" htmlFor={`s-${k}`}>{({ code: "Kode", name: "Nama", sector: "Sektor", board: "Papan", listed_shares: "Saham beredar" })[k]}</label>
+          <div key={k} className={k === "name" ? "sm:col-span-2" : ""}><label className="mb-1 block text-meta" htmlFor={`s-${k}`}>{({ code: "Kode", name: "Nama", sector: "Sektor", board: "Papan", listed_shares: "Saham beredar" })[k]}</label>
             <input id={`s-${k}`} className="input" list={k === "sector" ? "sektor-list" : k === "board" ? "papan-list" : undefined} value={form[k]} onChange={(e) => setForm({ ...form, [k]: e.target.value })} /></div>
         ))}
         <div className="flex items-end"><button className="btn btn-primary w-full">Simpan</button></div>
       </form>
-      <div className="card space-y-2"><label htmlFor="csv" className="text-[14px] font-medium">Impor CSV</label>
+      <div className="card space-y-2"><label htmlFor="csv" className="text-sm font-medium">Impor CSV</label>
         <textarea id="csv" rows={4} className="input" value={csv} onChange={(e) => setCsv(e.target.value)} placeholder={"kode,nama,sektor,papan,saham_beredar\nBBCA,Bank Central Asia Tbk.,Financials,Utama,123275050000"} />
         <button className="btn" onClick={importCsv} disabled={!csv.trim()}>Validasi dan impor</button></div>
 
@@ -106,13 +106,13 @@ export default function StockAdmin() {
           <div className="flex flex-wrap gap-2" role="group" aria-label="Filter">
             {FILTERS.map((f) => <button key={f.id} type="button" className="chip" aria-pressed={filter === f.id} onClick={() => { setFilter(f.id); setLimit(100); }}>{f.label}{f.id === "nosector" ? ` (${list.filter((s) => !s.sector).length})` : f.id === "noboard" ? ` (${list.filter((s) => !s.board).length})` : ""}</button>)}
           </div>
-          <p className="ml-auto text-[13px] text-muted">{matched.length.toLocaleString("id-ID")} dari {list.length.toLocaleString("id-ID")} saham · klik sel Sektor/Papan untuk mengubah</p>
+          <p className="ml-auto text-meta text-muted">{matched.length.toLocaleString("id-ID")} dari {list.length.toLocaleString("id-ID")} saham · klik sel Sektor/Papan untuk mengubah</p>
         </div>
-        <div className="overflow-x-auto"><table className="data"><thead><tr><th>Kode</th><th>Nama</th><th>Sektor</th><th>Papan</th><th>Status</th></tr></thead>
+        <div className="table-scroll"><table className="data"><thead><tr><th>Kode</th><th>Nama</th><th>Sektor</th><th>Papan</th><th>Status</th></tr></thead>
           <tbody>{shown.map((s) => (
             <tr key={s.code}><td className="font-medium">{s.code}</td><td className="max-w-[260px] truncate">{s.name}</td>
-              <td><input aria-label={`Sektor ${s.code}`} className="input !min-h-[36px] !py-0 text-[14px]" list="sektor-list" defaultValue={s.sector ?? ""} key={`${s.code}-s-${s.sector}`} placeholder="–" onBlur={(e) => patch(s, "sector", e.target.value)} /></td>
-              <td><input aria-label={`Papan ${s.code}`} className="input !min-h-[36px] !py-0 text-[14px]" list="papan-list" defaultValue={s.board ?? ""} key={`${s.code}-b-${s.board}`} placeholder="–" onBlur={(e) => patch(s, "board", e.target.value)} /></td>
+              <td><input aria-label={`Sektor ${s.code}`} className="input !min-h-[36px] !py-0 text-sm" list="sektor-list" defaultValue={s.sector ?? ""} key={`${s.code}-s-${s.sector}`} placeholder="–" onBlur={(e) => patch(s, "sector", e.target.value)} /></td>
+              <td><input aria-label={`Papan ${s.code}`} className="input !min-h-[36px] !py-0 text-sm" list="papan-list" defaultValue={s.board ?? ""} key={`${s.code}-b-${s.board}`} placeholder="–" onBlur={(e) => patch(s, "board", e.target.value)} /></td>
               <td><button className="underline" onClick={() => toggle(s)}>{s.active ? "Aktif" : "Nonaktif"}</button></td></tr>
           ))}</tbody></table></div>
         {matched.length > limit && <div className="mt-4 text-center"><button className="btn" onClick={() => setLimit((l) => l + 200)}>Tampilkan lebih banyak</button></div>}

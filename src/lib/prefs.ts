@@ -4,22 +4,23 @@
 export type Lang = "id" | "en";
 export type FontSize = "s" | "m" | "l" | "xl";
 export type Accent = "cobalt" | "emerald" | "violet" | "orange" | "rose";
-export type Theme = "system" | "light" | "dark";
+export type Theme = "light" | "dark"; // tanpa mode sistem: bawaan terang
+export type FontFamily = "poppins" | "serif";
 export type Prefs = {
-  lang: Lang; fs: FontSize; accent: Accent;
+  lang: Lang; fs: FontSize; accent: Accent; font: FontFamily;
   cb: boolean;                      // palet naik/turun ramah buta warna (biru/oranye)
   contrast: boolean;                // kontras tinggi
   motion: "auto" | "reduce";        // kurangi animasi
   density: "comfortable" | "compact";
 };
 
-export const DEFAULTS: Prefs = { lang: "id", fs: "m", accent: "cobalt", cb: false, contrast: false, motion: "auto", density: "comfortable" };
+export const DEFAULTS: Prefs = { lang: "id", fs: "m", accent: "cobalt", font: "poppins", cb: false, contrast: false, motion: "auto", density: "comfortable" };
 const KEY = "prefs", THEME_KEY = "theme", EVENT = "prefs-change";
 
 const FS: FontSize[] = ["s", "m", "l", "xl"], ACCENTS: Accent[] = ["cobalt", "emerald", "violet", "orange", "rose"];
 
 /** Skrip sebaris untuk <head>: menerapkan preferensi sebelum cat pertama (hindari kedipan). Harus setara dengan applyPrefs. */
-export const BOOT_SCRIPT = `try{var d=document.documentElement,p=JSON.parse(localStorage.getItem("prefs")||"{}"),t=localStorage.getItem("theme");if(t==="light"||t==="dark")d.setAttribute("data-theme",t);if(p.fs==="s"||p.fs==="l"||p.fs==="xl")d.setAttribute("data-fs",p.fs);if(p.accent&&p.accent!=="cobalt")d.setAttribute("data-accent",p.accent);if(p.cb)d.setAttribute("data-cb","1");if(p.contrast)d.setAttribute("data-contrast","1");if(p.motion==="reduce")d.setAttribute("data-motion","reduce");if(p.density==="compact")d.setAttribute("data-density","compact");if(p.lang==="en")d.lang="en"}catch(e){}`;
+export const BOOT_SCRIPT = `try{var d=document.documentElement,p=JSON.parse(localStorage.getItem("prefs")||"{}"),t=localStorage.getItem("theme");d.setAttribute("data-theme",t==="dark"?"dark":"light");if(p.font==="serif")d.setAttribute("data-font","serif");if(p.fs==="s"||p.fs==="l"||p.fs==="xl")d.setAttribute("data-fs",p.fs);if(p.accent&&p.accent!=="cobalt")d.setAttribute("data-accent",p.accent);if(p.cb)d.setAttribute("data-cb","1");if(p.contrast)d.setAttribute("data-contrast","1");if(p.motion==="reduce")d.setAttribute("data-motion","reduce");if(p.density==="compact")d.setAttribute("data-density","compact");if(p.lang==="en")d.lang="en"}catch(e){}`;
 
 function sanitize(raw: unknown): Prefs {
   const r = (raw && typeof raw === "object" ? raw : {}) as Partial<Prefs>;
@@ -27,6 +28,7 @@ function sanitize(raw: unknown): Prefs {
     lang: r.lang === "en" ? "en" : "id",
     fs: FS.includes(r.fs as FontSize) ? (r.fs as FontSize) : "m",
     accent: ACCENTS.includes(r.accent as Accent) ? (r.accent as Accent) : "cobalt",
+    font: r.font === "serif" ? "serif" : "poppins",
     cb: r.cb === true, contrast: r.contrast === true,
     motion: r.motion === "reduce" ? "reduce" : "auto",
     density: r.density === "compact" ? "compact" : "comfortable",
@@ -46,7 +48,7 @@ export function getPrefs(): Prefs {
 }
 
 export function getTheme(): Theme {
-  try { const t = localStorage.getItem(THEME_KEY); return t === "light" || t === "dark" ? t : "system"; } catch { return "system"; }
+  try { const t = localStorage.getItem(THEME_KEY); return t === "dark" ? "dark" : "light"; } catch { return "light"; }
 }
 
 export function subscribePrefs(cb: () => void) {
@@ -58,7 +60,8 @@ function setAttr(el: HTMLElement, name: string, on: boolean, value = "1") { if (
 
 export function applyPrefs(p: Prefs, theme: Theme = getTheme()) {
   const el = document.documentElement;
-  setAttr(el, "data-theme", theme !== "system", theme);
+  el.setAttribute("data-theme", theme);
+  setAttr(el, "data-font", p.font === "serif", "serif");
   setAttr(el, "data-fs", p.fs !== "m", p.fs);
   setAttr(el, "data-accent", p.accent !== "cobalt", p.accent);
   setAttr(el, "data-cb", p.cb); setAttr(el, "data-contrast", p.contrast);
@@ -75,13 +78,13 @@ export function savePrefs(patch: Partial<Prefs>) {
 }
 
 export function saveTheme(t: Theme) {
-  try { if (t === "system") localStorage.removeItem(THEME_KEY); else localStorage.setItem(THEME_KEY, t); } catch { /* abaikan */ }
+  try { localStorage.setItem(THEME_KEY, t); } catch { /* abaikan */ }
   applyPrefs(getPrefs(), t);
   window.dispatchEvent(new Event(EVENT));
 }
 
 export function resetPrefs() {
   try { localStorage.removeItem(KEY); localStorage.removeItem(THEME_KEY); } catch { /* abaikan */ }
-  applyPrefs(DEFAULTS, "system");
+  applyPrefs(DEFAULTS, "light");
   window.dispatchEvent(new Event(EVENT));
 }

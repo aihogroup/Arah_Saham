@@ -1,0 +1,133 @@
+/* =====================================================================
+   Token desain: satu-satunya sumber nilai visual.
+   Warna diberi nama menurut FUNGSI (bukan nilai), jarak memakai kisi 8 titik,
+   tipografi dan jarak bagian bersifat cair (clamp) sehingga tidak bergantung breakpoint.
+   ===================================================================== */
+:root {
+  /* --- Warna: tema terang (bawaan) --- */
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --muted: #5b6b82;              /* 5,4:1 di atas putih (WCAG AA untuk teks kecil) */
+  --surface: #f8fafc;
+  --surface-raised: #ffffff;
+  --line: #e5e7eb;
+  --line-strong: #cbd5e1;
+  --brand: var(--ac-l, #2554d6);
+  --brand-fg: #ffffff;
+  --brand-soft: var(--ac-soft-l, #eaf0ff);
+  --up: #0e9f6e;
+  --down: #e02d3c;
+  --success: var(--up);
+  --danger: var(--down);
+  --warn-bg: #fef3c7;
+  --warn-fg: #92400e;
+  --premium: #b45309;
+  --premium-soft: #fff4e0;
+  --overlay: rgb(15 23 42 / 0.45);
+  --focus-ring: var(--brand);
+
+  /* --- Jarak: kisi 8 titik (4 hanya untuk penyesuaian halus) --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-gutter: clamp(16px, 3vw + 4px, 24px);
+  --space-section: clamp(64px, 8vw + 32px, 96px);
+
+  /* --- Bentuk --- */
+  --radius-sm: 8px;              /* elemen di dalam kartu: baris menu, opsi */
+  --radius-md: 12px;             /* kartu, tombol, kolom isian, panel */
+  --radius-lg: 16px;             /* lembar bawah, dialog */
+  --radius-pill: 999px;          /* chip, lencana */
+  --border-width: 1px;
+
+  /* --- Elevasi: 0 datar, 1 kartu disorot, 2 menu/popover, 3 notifikasi/dialog --- */
+  --shadow-1: 0 8px 24px -14px rgb(15 23 42 / 0.35);
+  --shadow-2: 0 16px 40px -16px rgb(15 23 42 / 0.30);
+  --shadow-3: 0 20px 48px -12px rgb(15 23 42 / 0.45);
+
+  /* --- Tipografi --- */
+  --font-ui: var(--font-poppins), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fs-h1: clamp(26px, 1.6vw + 20px, 34px);
+  --lh-h1: 1.24;
+  --fs-h2: clamp(22px, 0.8vw + 19px, 24px);
+  --lh-h2: 1.33;
+  --fs-h3: clamp(18px, 0.4vw + 16.5px, 20px);
+  --lh-h3: 1.4;
+  --measure: 68ch;               /* panjang baris nyaman dibaca */
+
+  /* --- Ukuran kontrol (Hukum Fitts: target sentuh minimal 44px) --- */
+  --control-h: 44px;
+  --control-h-sm: 40px;
+  --tap-min: 44px;
+  --header-h: 64px;
+  --bottom-nav-h: 64px;
+  --container-max: 1200px;
+
+  /* --- Gerak: durasi dan kurva yang sama di seluruh aplikasi --- */
+  --dur-instant: 100ms;
+  --dur-fast: 150ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* --- Lapisan --- */
+  --z-header: 40;
+  --z-nav: 40;
+  --z-overlay: 50;
+  --z-progress: 80;
+  --z-toast: 90;
+  --z-splash: 100;
+
+  /* --- Area aman (poni, lubang kamera, indikator navigasi) --- */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+@media (min-width: 640px) { :root { --header-h: 72px; } }
+
+/* Tema gelap. Bawaan aplikasi terang; pilihan pengguna disimpan dan diterapkan sebelum cat pertama (lib/prefs). */
+:root[data-theme="dark"] {
+  --background: #0b1020;
+  --foreground: #e8edf7;
+  --muted: #a3b1c6;
+  --surface: #111833;
+  --surface-raised: #141c3a;
+  --line: #243056;
+  --line-strong: #3a4a7a;
+  --brand: var(--ac-d, #6b8cff);
+  --brand-fg: #0b1020;
+  --brand-soft: var(--ac-soft-d, #16224a);
+  --up: #34d399;
+  --down: #f87171;
+  --warn-bg: #3b2f0a;
+  --warn-fg: #fcd34d;
+  --premium: #fbbf24;
+  --premium-soft: #33260a;
+  --overlay: rgb(2 6 23 / 0.6);
+  --shadow-1: 0 8px 24px -14px rgb(0 0 0 / 0.7);
+  --shadow-2: 0 16px 40px -16px rgb(0 0 0 / 0.7);
+  --shadow-3: 0 20px 48px -12px rgb(0 0 0 / 0.8);
+  color-scheme: dark;
+}
+:root[data-theme="light"] { color-scheme: light; }
+
+/* Preferensi tampilan (halaman Pengaturan). Warna aksen: nilai terang (l) dan gelap (d). */
+:root[data-accent="emerald"] { --ac-l: #047857; --ac-d: #34d399; --ac-soft-l: #e3f5ee; --ac-soft-d: #0f2e26; }
+:root[data-accent="violet"]  { --ac-l: #6d28d9; --ac-d: #a78bfa; --ac-soft-l: #efe9fd; --ac-soft-d: #231b45; }
+:root[data-accent="orange"]  { --ac-l: #c2410c; --ac-d: #fb923c; --ac-soft-l: #fdeee3; --ac-soft-d: #3a2210; }
+:root[data-accent="rose"]    { --ac-l: #be123c; --ac-d: #fb7185; --ac-soft-l: #fde8ed; --ac-soft-d: #3b1521; }
+/* Palet ramah buta warna: biru (naik) dan jingga (turun). */
+:root[data-cb="1"] { --up: #0072b2; --down: #c2570c; }
+:root[data-theme="dark"][data-cb="1"] { --up: #56b4e9; --down: #f0a030; }
+/* Kontras tinggi. */
+:root[data-contrast="1"] { --muted: #334155; --line: #64748b; --line-strong: #334155; }
+:root[data-theme="dark"][data-contrast="1"] { --muted: #dbe4f3; --line: #5b6b94; --line-strong: #93a3c8; }
+:root[data-font="serif"] { --font-ui: var(--font-serif), Georgia, "Times New Roman", serif; }

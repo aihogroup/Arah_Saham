@@ -22,7 +22,7 @@ async function Content() {
             <div className="mt-3 grid gap-4 sm:grid-cols-2">
               {(["in", "out"] as const).map((t) => (
                 <div key={t}>
-                  <p className={`text-[13px] font-medium ${t === "in" ? "up" : "down"}`}>{t === "in" ? "▲ Masuk" : "▼ Keluar"}</p>
+                  <p className={`text-meta font-medium ${t === "in" ? "up" : "down"}`}>{t === "in" ? "▲ Masuk" : "▼ Keluar"}</p>
                   <ul className="mt-1 flex flex-wrap gap-2">
                     {list.filter((c) => c.change_type === t).map((c) => <li key={c.stock_code}><Link className="chip" href={`/saham/${c.stock_code}`} title={c.name}>{c.stock_code}</Link></li>)}
                     {list.filter((c) => c.change_type === t).length === 0 && <li className="text-muted">–</li>}
@@ -39,7 +39,7 @@ async function Content() {
 
 export default function IndeksPage() {
   return (
-    <div className="container-x py-10">
+    <div className="container-x py-6 sm:py-8">
       <PageHead title="Perubahan indeks" lead="Saham yang masuk dan keluar tiap indeks. Setiap perubahan menjadi versi baru; analisis lama tetap memakai komposisi yang berlaku pada harinya." />
       <Suspense fallback={<Skeleton className="h-64" />}><Content /></Suspense>
     </div>

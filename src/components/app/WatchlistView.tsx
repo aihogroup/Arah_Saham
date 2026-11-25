@@ -2,20 +2,32 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { Delta, Empty, Skeleton } from "@/components/ui";
+import { Plus, RotateCcw, Star, Trash2 } from "lucide-react";
+import { toast } from "@/components/Toaster";
+import { Delta, Empty, Field, Skeleton, fieldAria } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { price } from "@/lib/format";
+import { haptic } from "@/lib/haptics";
+import { normalize } from "@/lib/validation";
 
 type Item = { stock_code: string; name: string; close: number | null; change_pct: number | null };
 
+/**
+ * Watchlist: tambah dengan kode saham (huruf kecil, "$BBCA", "BBCA.JK" diterima), hapus langsung tanpa dialog
+ * karena bisa diurungkan dari notifikasi (UI optimistis + Urungkan lebih cepat daripada konfirmasi).
+ */
 export default function WatchlistView() {
   const [items, setItems] = useState<Item[] | null>(null);
   const [code, setCode] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  const [loadErr, setLoadErr] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
     const sb = createClient();
-    const { data: w } = await sb.from("watchlists").select("stock_code").order("created_at");
+    const { data: w, error } = await sb.from("watchlists").select("stock_code").order("created_at");
+    if (error) { setLoadErr(true); return; }
+    setLoadErr(false);
     const codes = (w ?? []).map((x) => x.stock_code);
     if (!codes.length) return setItems([]);
     const [{ data: names }, { data: last }] = await Promise.all([
@@ -30,33 +42,73 @@ export default function WatchlistView() {
 
   useEffect(() => { load(); }, [load]);
 
-  async function add(e: React.FormEvent) {
-    e.preventDefault();
-    const c = code.trim().toUpperCase();
-    if (!/^[A-Z0-9]{3,6}$/.test(c)) return setErr("Kode saham tidak valid.");
+  async function insert(c: string) {
     const sb = createClient();
     const { data: u } = await sb.auth.getUser();
-    const { error } = await sb.from("watchlists").insert({ user_id: u.user!.id, stock_code: c });
-    if (error) return setErr(error.code === "23503" ? "Kode saham tidak ditemukan." : error.code === "23505" ? "Sudah ada di watchlist." : "Gagal menambah.");
-    setErr(null); setCode(""); load();
+    return sb.from("watchlists").insert({ user_id: u.user!.id, stock_code: c });
   }
-  async function remove(c: string) { await createClient().from("watchlists").delete().eq("stock_code", c); load(); }
+
+  async function add(e: React.FormEvent) {
+    e.preventDefault();
+    if (busy) return; // cegah kirim ganda
+    const c = normalize.stockCode(code);
+    if (!/^[A-Z0-9]{3,6}$/.test(c)) return setErr("Kode saham 3–6 huruf/angka, mis. BBCA.");
+    setBusy(true);
+    const { error } = await insert(c);
+    setBusy(false);
+    if (error) return setErr(error.code === "23503" ? `Kode ${c} tidak ditemukan di bursa.` : error.code === "23505" ? `${c} sudah ada di watchlist.` : "Gagal menambah. Coba lagi.");
+    setErr(null); setCode(""); haptic("success"); toast(`${c} ditambahkan ke watchlist`); load();
+  }
+
+  async function remove(it: Item) {
+    const prev = items;
+    setItems((x) => x?.filter((i) => i.stock_code !== it.stock_code) ?? null); // langsung hilang (optimistis)
+    const { error } = await createClient().from("watchlists").delete().eq("stock_code", it.stock_code);
+    if (error) { setItems(prev); toast(`Gagal menghapus ${it.stock_code}. Coba lagi.`, "error"); return; }
+    haptic("tap");
+    toast(`${it.stock_code} dihapus dari watchlist`, "info", {
+      label: "Urungkan",
+      onClick: async () => { const r = await insert(it.stock_code); if (r.error) toast("Gagal mengembalikan.", "error"); else load(); },
+    });
+  }
 
   return (
     <div className="space-y-4">
-      <form onSubmit={add} className="flex gap-2">
-        <label htmlFor="wc" className="sr-only">Kode saham</label>
-        <input id="wc" className="input max-w-[200px] uppercase" placeholder="Kode, mis. BBCA" value={code} onChange={(e) => setCode(e.target.value)} maxLength={6} />
-        <button className="btn btn-primary">Tambah</button>
+      <form onSubmit={add} className="flex items-start gap-2" noValidate>
+        <div className="w-full max-w-[240px]">
+          <Field id="wc" label={<span className="sr-only">Kode saham</span>} error={err}>
+            <input {...fieldAria("wc", err)} className="input uppercase" placeholder="Kode, mis. BBCA" value={code} autoCapitalize="characters" autoComplete="off" spellCheck={false}
+              enterKeyHint="done" maxLength={10} onChange={(e) => { setCode(e.target.value); if (err) setErr(null); }} />
+          </Field>
+        </div>
+        <button className="btn btn-primary mt-6" disabled={busy || !code.trim()} aria-busy={busy}>{!busy && <Plus size={18} aria-hidden="true" />}{busy ? "Menambah…" : "Tambah"}</button>
       </form>
-      {err && <p role="alert" className="down">{err}</p>}
-      {!items ? <Skeleton className="h-40" /> : items.length === 0 ? <Empty message="Watchlist masih kosong." /> : (
-        <table className="data"><thead><tr><th>Kode</th><th className="hidden sm:table-cell">Nama</th><th className="r">Harga</th><th className="r">Perubahan</th><th><span className="sr-only">Hapus</span></th></tr></thead>
-          <tbody>{items.map((i) => (
-            <tr key={i.stock_code}><td><Link href={`/saham/${i.stock_code}`} className="font-medium text-brand">{i.stock_code}</Link></td>
-              <td className="hidden sm:table-cell">{i.name}</td><td className="r">{i.close === null ? "–" : price(i.close)}</td><td className="r"><Delta value={i.change_pct} /></td>
-              <td className="r"><button className="text-muted underline" onClick={() => remove(i.stock_code)} aria-label={`Hapus ${i.stock_code}`}>Hapus</button></td></tr>
-          ))}</tbody></table>
+
+      {loadErr ? (
+        <div role="alert" className="card flex flex-wrap items-center justify-between gap-3">
+          <p className="down">Watchlist belum bisa dimuat.</p>
+          <button type="button" className="btn" onClick={load}><RotateCcw size={16} aria-hidden="true" />Coba lagi</button>
+        </div>
+      ) : !items ? (
+        <div className="space-y-2" role="status" aria-label="Memuat watchlist">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-11" />)}</div>
+      ) : items.length === 0 ? (
+        <Empty icon={<Star size={22} />} title="Watchlist masih kosong" message="Ketik kode saham di atas untuk mulai memantau harganya di sini setiap hari."
+          action={<Link href="/saham" className="btn">Jelajahi saham</Link>} />
+      ) : (
+        <div className="table-scroll">
+          <table className="data">
+            <thead><tr><th>Kode</th><th className="hidden sm:table-cell">Nama</th><th className="r">Harga</th><th className="r">Perubahan</th><th className="w-12"><span className="sr-only">Aksi</span></th></tr></thead>
+            <tbody>{items.map((i) => (
+              <tr key={i.stock_code}>
+                <td><Link href={`/saham/${i.stock_code}`} className="inline-flex min-h-10 items-center font-medium text-brand">{i.stock_code}</Link></td>
+                <td className="hidden sm:table-cell">{i.name}</td>
+                <td className="r">{i.close === null ? "–" : price(i.close)}</td>
+                <td className="r"><Delta value={i.change_pct} /></td>
+                <td className="r"><button type="button" className="btn btn-ghost btn-icon text-muted hover:text-down" onClick={() => remove(i)} aria-label={`Hapus ${i.stock_code} dari watchlist`} title="Hapus"><Trash2 size={18} aria-hidden="true" /></button></td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
       )}
     </div>
   );

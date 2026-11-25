@@ -33,10 +33,10 @@ export default function BrokerTable() {
       <div className="flex flex-wrap items-center gap-3">
         <label className="sr-only" htmlFor="cari-broker">Cari broker</label>
         <input id="cari-broker" className="input max-w-xs" placeholder="Cari broker" value={q} onChange={(e) => setQ(e.target.value)} />
-        <p className="text-[13px] text-muted">Data per {dateId(rows[0].trade_date)}</p>
-        <a className="btn ml-auto" href="/api/csv/brokers" download><Download size={16} aria-hidden="true" /> Unduh CSV</a>
+        <p className="text-meta text-muted">Data per {dateId(rows[0].trade_date)}</p>
+        <a className="btn ms-auto" href="/api/csv/brokers" download><Download size={16} aria-hidden="true" /> Unduh CSV</a>
       </div>
-      <div className="mt-4 overflow-x-auto">
+      <div className="mt-4 table-scroll">
         <table className="data">
           <thead><tr><th>Broker</th><th className="hidden sm:table-cell">Nama</th><th className="r">Nilai</th><th className="r hidden md:table-cell">Volume</th><th className="r hidden md:table-cell">Frekuensi</th><th className="r">Pangsa nilai</th></tr></thead>
           <tbody>{list.map((r) => (

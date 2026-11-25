@@ -4,7 +4,7 @@ export const metadata = { title: "Disclaimer" };
 
 export default function DisclaimerPage() {
   return (
-    <div className="container-x py-10">
+    <div className="container-x py-6 sm:py-8">
       <PageHead title="Disclaimer" />
       <div className="prose-id max-w-[760px]">
         <p>Seluruh isi situs ini adalah informasi dan edukasi. Bukan nasihat investasi, bukan rekomendasi beli/jual, dan bukan penawaran efek. Keputusan dan risikonya sepenuhnya menjadi tanggung jawab Anda.</p>

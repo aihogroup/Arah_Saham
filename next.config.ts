@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   // Halaman "Cara kerja" dihapus; tautan lama diarahkan ke beranda.
   async redirects() {
-    return [{ source: "/cara-kerja", destination: "/", permanent: true }];
+    return [{ source: "/cara-kerja", destination: "/", permanent: true }, { source: "/pasar/etf-adr-indonesia", destination: "/pasar/proksi-indonesia", permanent: true }];
   },
   async headers() {
     return [{

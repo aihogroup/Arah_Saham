@@ -1,0 +1,46 @@
+/* =====================================================================
+   Dasar dokumen: tipografi, fokus, seleksi. Hanya selektor elemen di sini.
+   Properti logis (inline/block) dipakai agar tata letak siap kanan-ke-kiri (RTL).
+   ===================================================================== */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-block-start: calc(var(--header-h) + var(--space-4));
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+::selection { background: var(--brand-soft); }
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent; /* umpan balik tekan diganti efek tekan milik komponen */
+}
+
+h1, h2, h3 { font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: var(--fs-h1); line-height: var(--lh-h1); }
+h2 { font-size: var(--fs-h2); line-height: var(--lh-h2); }
+h3 { font-size: var(--fs-h3); line-height: var(--lh-h3); }
+p { text-wrap: pretty; }
+
+img, svg, video { max-width: 100%; }
+img, video { height: auto; }
+
+/* Indikator fokus yang jelas untuk navigasi papan ketik (WCAG 2.4.7). Tidak tampil saat diklik dengan tetikus. */
+:where(a, button, summary, select, input, textarea, [role="switch"], [role="radio"], [role="tab"], [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+a { transition: color var(--dur-fast) var(--ease-standard); }
+
+/* Tautan lompat ke konten. */
+.skip-link {
+  position: absolute; inset-inline-start: var(--space-4); inset-block-start: var(--space-4); z-index: var(--z-toast);
+  padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--background);
+  box-shadow: var(--shadow-2); transform: translateY(-200%);
+}
+.skip-link:focus { transform: none; }

@@ -2,6 +2,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import { anonClient } from "@/lib/supabase/anon";
 import type { CatalogRow } from "@/lib/market";
 import { toGroupRow } from "@/lib/stocks";
+import { toRankRow, type MetricId, type RankRow } from "@/lib/ranking";
 
 /**
  * Pembaca data publik yang di-cache bersama (CDN/server). Hanya memakai klien anon: tidak ada data pribadi.
@@ -81,6 +82,14 @@ export async function getRanking(kind: "gainer" | "loser" | "value" | "net_forei
   cacheLife(LIFE); cacheTag("market");
   const { data } = await anonClient().rpc("rankings", { p_kind: kind, p_limit: limit });
   return ((data as Mover[]) ?? []).map(norm);
+}
+
+/** Peringkat hari bursa terakhir (pengunjung) dengan filter papan/sektor/indeks; rentang tanggal diambil dari sisi klien oleh akun masuk. */
+export async function getRankStocks(metric: MetricId, board: string | null, sector: string | null, index: string | null, limit = 10): Promise<RankRow[]> {
+  "use cache";
+  cacheLife(LIFE); cacheTag("market");
+  const { data } = await anonClient().rpc("rank_stocks", { p_metric: metric, p_board: board, p_sector: sector, p_index: index, p_limit: limit });
+  return ((data as Record<string, unknown>[]) ?? []).map(toRankRow);
 }
 
 export async function getIhsgSeries(days = 31): Promise<{ trade_date: string; close: number; change_pct: number | null }[]> {
@@ -173,4 +182,20 @@ export async function getPlans() {
 function norm(m: Mover): Mover {
   return { ...m, close: Number(m.close), change_pct: m.change_pct === null ? null : Number(m.change_pct), value: Number(m.value), volume: Number(m.volume),
     net_foreign: m.net_foreign === null || m.net_foreign === undefined ? null : Number(m.net_foreign), spark: m.spark ? m.spark.map(Number) : null };
+}
+
+export type MoveItem = { symbol: string; name: string; date: string; close: number; chg_1d: number | null; chg_5d: number | null; corr: number; n: number; signal: "naik" | "turun"; strength: "kuat" | "sedang" | "lemah" };
+export type MoveGroup = { direction: "naik" | "turun"; supporting: number; total: number; items: MoveItem[] };
+export type Movement = {
+  ihsg: { date: string; chg: number } | null;
+  groups: Record<string, MoveGroup>;
+  broker: { date: string | null; total: number | null; avg: number | null; ratio: number | null; top5_share: number | null; top: { code: string; name: string | null; value: number; share: number; ratio: number | null }[] | null } | null;
+};
+
+/** Analisis pergerakan: hubungan historis tiap instrumen pasar dengan IHSG hari berikutnya, dan aktivitas broker. */
+export async function getMovement(): Promise<Movement | null> {
+  "use cache";
+  cacheLife(LIFE); cacheTag("market");
+  const { data } = await anonClient().rpc("movement_analysis");
+  return (data as Movement | null) ?? null;
 }

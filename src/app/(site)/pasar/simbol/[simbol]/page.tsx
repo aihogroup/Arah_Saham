@@ -35,20 +35,20 @@ async function Content({ params }: { params: Promise<{ simbol: string }> }) {
   ];
   return (
     <>
-      <nav aria-label="Jalur halaman" className="mb-4 flex flex-wrap items-center gap-2 text-[14px] text-muted">
+      <nav aria-label="Jalur halaman" className="mb-4 flex flex-wrap items-center gap-2 text-sm text-muted">
         <Link href="/pasar" className="inline-flex items-center gap-1 hover:text-foreground"><ArrowLeft size={16} aria-hidden="true" /> <T k="market.back" /></Link>
         {cat && <><span aria-hidden="true">/</span><Link href={`/pasar/${cat.slug}`} className="hover:text-foreground"><T k={cat.k} /></Link></>}
       </nav>
-      <p className="text-[13px] text-muted">{row.symbol}</p>
+      <p className="text-meta text-muted">{row.symbol}</p>
       <h1>{row.name}</h1>
-      <div className="mt-2 flex flex-wrap items-baseline gap-3"><span className="text-[36px] font-semibold leading-10">{mprice(row.close)}</span><Delta value={row.change_pct} /></div>
+      <div className="mt-2 flex flex-wrap items-baseline gap-3"><span className="text-display font-semibold">{mprice(row.close)}</span><Delta value={row.change_pct} /></div>
       <Stamp date={row.last_date} />
       <div className="card mt-6">
-        <h2 className="text-[18px] leading-7"><T k="market.perf" /></h2>
+        <h2 className="text-lg leading-7"><T k="market.perf" /></h2>
         <dl className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-6">
-          {perf.map((p) => <div key={p.k}><dt className="text-[13px] text-muted"><T k={p.k} /></dt><dd className="mt-1"><Delta value={p.v} digits={1} /></dd></div>)}
+          {perf.map((p) => <div key={p.k}><dt className="text-meta text-muted"><T k={p.k} /></dt><dd className="mt-1"><Delta value={p.v} digits={1} /></dd></div>)}
         </dl>
-        <p className="mt-3 text-[13px] text-muted"><T k="market.since" /> {dateId(row.first_date)} · {row.n_days.toLocaleString("id-ID")} <T k="market.days" /></p>
+        <p className="mt-3 text-meta text-muted"><T k="market.since" /> {dateId(row.first_date)} · {row.n_days.toLocaleString("id-ID")} <T k="market.days" /></p>
       </div>
       <div className="mt-6"><SymbolHistory symbol={row.symbol} name={row.name} initial={initial} initialDays={INITIAL_DAYS} /></div>
     </>
@@ -56,5 +56,5 @@ async function Content({ params }: { params: Promise<{ simbol: string }> }) {
 }
 
 export default function SimbolPage({ params }: { params: Promise<{ simbol: string }> }) {
-  return <div className="container-x py-10"><Suspense fallback={<Skeleton className="h-96" />}><Content params={params} /></Suspense></div>;
+  return <div className="container-x py-6 sm:py-8"><Suspense fallback={<Skeleton className="h-96" />}><Content params={params} /></Suspense></div>;
 }

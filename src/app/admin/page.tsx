@@ -23,11 +23,11 @@ export default async function AdminHome() {
       {s?.demo && <Banner level="warning">Database masih berisi data demo (sintetis). Jalankan purge_demo() sebelum membuka ke publik.</Banner>}
       <div className="grid gap-3 sm:grid-cols-4">
         {[["Pengguna", users], ["Langganan aktif", subs], ["Saham", stocks], ["Data terakhir", s?.stock_date ? dateId(s.stock_date) : "–"]].map(([l, v]) => (
-          <div key={String(l)} className="card"><p className="text-[13px] text-muted">{l}</p><p className="mt-1 text-2xl font-semibold tabular-nums">{v}</p></div>
+          <div key={String(l)} className="card"><p className="text-meta text-muted">{l}</p><p className="mt-1 text-2xl font-semibold tabular-nums">{v}</p></div>
         ))}
       </div>
       <section><h2 className="mb-2 text-lg">Log pipeline</h2>
-        <div className="overflow-x-auto"><table className="data"><thead><tr><th>Waktu</th><th>Sumber</th><th>Tanggal</th><th>Status</th><th className="r">Masuk</th><th className="r">OK</th><th className="r">Ditolak</th><th>Pesan</th></tr></thead>
+        <div className="table-scroll"><table className="data"><thead><tr><th>Waktu</th><th>Sumber</th><th>Tanggal</th><th>Status</th><th className="r">Masuk</th><th className="r">OK</th><th className="r">Ditolak</th><th>Pesan</th></tr></thead>
           <tbody>{(logs ?? []).map((l) => <tr key={l.id}><td>{new Date(l.started_at).toLocaleString("id-ID")}</td><td>{l.source}</td><td>{l.trade_date ?? "–"}</td><td className={l.status === "ok" ? "up" : l.status === "error" ? "down" : ""}>{l.status}</td><td className="r">{l.rows_in}</td><td className="r">{l.rows_ok}</td><td className="r">{l.rows_rejected}</td><td className="max-w-[260px] truncate">{l.message}</td></tr>)}</tbody></table></div>
       </section>
       <section><h2 className="mb-2 text-lg">Karantina data ({quar?.length ?? 0} terbuka)</h2><QuarantineList items={quar ?? []} /></section>

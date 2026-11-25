@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import Chart from "@/components/Chart";
+import MarketChart from "@/components/MarketChart";
 import GuestOnly from "@/components/GuestOnly";
 import Seasonality from "@/components/Seasonality";
-import { Delta, Disclaimer, Locked, PageHead, Skeleton, Stamp } from "@/components/ui";
+import StockInsight from "@/components/StockInsight";
+import { Disclaimer, Locked, PageHead, Skeleton } from "@/components/ui";
 import { getStock, getStockCodes } from "@/lib/data";
-import { compact, dateId, int, price } from "@/lib/format";
+import { compact, dateId, int } from "@/lib/format";
 
 export async function generateStaticParams() {
   const codes = await getStockCodes(20);
@@ -29,22 +30,18 @@ async function Detail({ params }: { params: Promise<{ kode: string }> }) {
     <>
       <PageHead title={`${d.stock.code} · ${d.stock.name}`} lead={[d.stock.sector, d.stock.board && `Papan ${d.stock.board}`].filter(Boolean).join(" · ")} />
       <div className="card">
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <span className="text-[32px] font-semibold leading-10">{price(last?.close)}</span>
-          <Delta value={last?.change_pct} />
-        </div>
-        <Stamp date={last?.trade_date} />
-        <div className="mt-4"><Chart data={d.series.map((r) => ({ time: r.trade_date, value: r.close }))} height={360} label={`Grafik harga ${d.stock.code}`} /></div>
-        <Seasonality source="stock" symbol={d.stock.code} />
+<div><MarketChart symbol={`${d.stock.code}.JK`} height={380} defaultRange="1y" label={`Grafik harga ${d.stock.code}`} fallback={d.series.map((r) => ({ time: r.trade_date, value: r.close }))} /></div>
+        <details className="mt-3"><summary className="cursor-pointer text-sm text-brand">Pola musiman</summary><Seasonality source="stock" symbol={d.stock.code} /></details>
       </div>
+      <div className="mt-6"><StockInsight code={d.stock.code} /></div>
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <div className="card">
           <h3>Ringkasan</h3>
-          <dl className="mt-3 grid grid-cols-2 gap-3 text-[15px]">
-            <dt className="text-muted">Nilai transaksi</dt><dd className="text-right">{compact(last?.value)}</dd>
-            <dt className="text-muted">Volume</dt><dd className="text-right">{int(last?.volume)}</dd>
-            <dt className="text-muted">Saham tercatat</dt><dd className="text-right">{compact(d.stock.listed_shares)}</dd>
-            <dt className="text-muted">Anggota indeks</dt><dd className="text-right">{d.indexes.length ? d.indexes.join(", ") : "–"}</dd>
+          <dl className="mt-3 grid grid-cols-2 gap-3 text-body">
+            <dt className="text-muted">Nilai transaksi</dt><dd className="text-end">{compact(last?.value)}</dd>
+            <dt className="text-muted">Volume</dt><dd className="text-end">{int(last?.volume)}</dd>
+            <dt className="text-muted">Saham tercatat</dt><dd className="text-end">{compact(d.stock.listed_shares)}</dd>
+            <dt className="text-muted">Anggota indeks</dt><dd className="text-end">{d.indexes.length ? d.indexes.join(", ") : "–"}</dd>
           </dl>
         </div>
         <div className="card">
@@ -68,5 +65,5 @@ async function Detail({ params }: { params: Promise<{ kode: string }> }) {
 }
 
 export default function StockPage({ params }: { params: Promise<{ kode: string }> }) {
-  return <div className="container-x py-10"><Suspense fallback={<Skeleton className="h-96" />}><Detail params={params} /></Suspense></div>;
+  return <div className="container-x py-6 sm:py-8"><Suspense fallback={<Skeleton className="h-96" />}><Detail params={params} /></Suspense></div>;
 }

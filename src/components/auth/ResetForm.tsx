@@ -1,5 +1,7 @@
 "use client";
 
+import PasswordInput from "@/components/PasswordInput";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -23,9 +25,9 @@ export default function ResetForm() {
   return (
     <form onSubmit={submit} className="space-y-4">
       <h1 className="text-xl">Kata sandi baru</h1>
-      <div><label htmlFor="p" className="mb-1 block text-[14px] font-medium">Kata sandi baru</label><input id="p" type="password" autoComplete="new-password" className="input" value={pw} onChange={(e) => setPw(e.target.value)} /></div>
+      <div><label htmlFor="p" className="mb-1 block text-sm font-medium">Kata sandi baru</label><PasswordInput id="p" autoComplete="new-password" aria-describedby="p-hint" value={pw} onChange={(e) => setPw(e.target.value)} /><p id="p-hint" className="mt-1 text-meta text-muted">Minimal 8 karakter.</p></div>
       {err && <p role="alert" className="down">{err}</p>}
-      <button className="btn btn-primary w-full" disabled={busy}>{busy ? "Menyimpan…" : "Simpan"}</button>
+      <button className="btn btn-primary w-full" disabled={busy} aria-busy={busy}>{busy ? "Menyimpan…" : "Simpan kata sandi"}</button>
     </form>
   );
 }
